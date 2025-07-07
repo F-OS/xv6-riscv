@@ -11,7 +11,6 @@
 
 #include <stdarg.h>
 
-#include "defs.h"
 #include "file.h"
 #include "fs.h"
 #include "memlayout.h"
@@ -21,6 +20,7 @@
 #include "sleeplock.h"
 #include "spinlock.h"
 #include "types.h"
+#include "uart.h"
 
 #define BACKSPACE 0x100
 #define C(x) ((x) - '@') // Control-x
