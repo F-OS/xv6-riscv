@@ -4,14 +4,7 @@
 
 #include <stdarg.h>
 
-#include "defs.h"
-#include "file.h"
-#include "fs.h"
-#include "memlayout.h"
-#include "param.h"
-#include "proc.h"
-#include "riscv.h"
-#include "sleeplock.h"
+#include "console.h"
 #include "spinlock.h"
 #include "types.h"
 

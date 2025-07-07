@@ -1,3 +1,12 @@
+#ifndef KERNEL_PROC_H
+#define KERNEL_PROC_H
+
+#include "file.h"
+#include "param.h"
+#include "riscv.h"
+#include "spinlock.h"
+#include "types.h"
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -105,3 +114,32 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 };
+
+void swtch(struct context *, struct context *);
+
+int cpuid(void);
+void exit(int status);
+int fork(void);
+int growproc(int n);
+void proc_mapstacks(pagetable_t kpgtbl);
+pagetable_t proc_pagetable(struct proc *p);
+void proc_freepagetable(pagetable_t pagetable, uint64 sz);
+int kill(int pid);
+int killed(struct proc *p);
+void setkilled(struct proc *p);
+struct cpu *mycpu(void);
+struct cpu *getmycpu(void);
+struct proc *myproc();
+void procinit(void);
+void scheduler(void) __attribute__((noreturn));
+void sched(void);
+void sleep(void *chan, struct spinlock *lk);
+void userinit(void);
+int wait(uint64 addr);
+void wakeup(void *chan);
+void yield(void);
+int either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
+int either_copyin(void *dst, int user_src, uint64 src, uint64 len);
+void procdump(void);
+
+#endif // KERNEL_PROC_H

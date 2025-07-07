@@ -1,8 +1,13 @@
-#include "defs.h"
-#include "memlayout.h"
-#include "param.h"
-#include "riscv.h"
-#include "types.h"
+#include "bio.h"
+#include "console.h"
+#include "file.h"
+#include "kalloc.h"
+#include "plic.h"
+#include "printf.h"
+#include "proc.h"
+#include "trap.h"
+#include "virtio.h"
+#include "vm.h"
 
 volatile static int started = 0;
 

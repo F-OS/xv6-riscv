@@ -1,3 +1,8 @@
+#ifndef KERNEL_FS_H
+#define KERNEL_FS_H
+
+#include "types.h"
+
 // On-disk file system format.
 // Both the kernel and user programs use this header file.
 
@@ -50,9 +55,33 @@ struct dinode {
 #define BBLOCK(b, sb) ((b) / BPB + sb.bmapstart)
 
 // Directory is a file containing a sequence of dirent structures.
-#define DIRSIZ 14
+#define DIRSIZ 28
 
 struct dirent {
   ushort inum;
-  char name[DIRSIZ];
+  char name[DIRSIZ + 1];
 };
+
+struct inode;
+struct stat;
+
+void fsinit(int dev);
+int dirlink(struct inode *dp, char *name, uint inum);
+struct inode *dirlookup(struct inode *dp, char *name, uint *poff);
+struct inode *ialloc(uint dev, short type);
+struct inode *idup(struct inode *ip);
+void iinit();
+void ilock(struct inode *ip);
+void iput(struct inode *ip);
+void iunlock(struct inode *ip);
+void iunlockput(struct inode *ip);
+void iupdate(struct inode *ip);
+int namecmp(const char *s, const char *t);
+struct inode *namei(char *path);
+struct inode *nameiparent(char *path, char *name);
+int readi(struct inode *ip, int user_dst, uint64 dst, uint off, uint n);
+void stati(struct inode *ip, struct stat *st);
+int writei(struct inode *ip, int user_src, uint64 src, uint off, uint n);
+void itrunc(struct inode *ip);
+
+#endif // KERNEL_FS_H

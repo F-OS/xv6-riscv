@@ -1,10 +1,16 @@
 #include "proc.h"
-#include "defs.h"
+#include "file.h"
+#include "kalloc.h"
+#include "log.h"
 #include "memlayout.h"
 #include "param.h"
+#include "printf.h"
 #include "riscv.h"
 #include "spinlock.h"
+#include "string.h"
+#include "trap.h"
 #include "types.h"
+#include "vm.h"
 
 struct cpu cpus[NCPU];
 

@@ -10,15 +10,16 @@
 // are in sysfile.c.
 
 #include "fs.h"
-#include "buf.h"
-#include "defs.h"
+#include "bio.h"
 #include "file.h"
+#include "log.h"
 #include "param.h"
+#include "printf.h"
 #include "proc.h"
-#include "riscv.h"
 #include "sleeplock.h"
 #include "spinlock.h"
 #include "stat.h"
+#include "string.h"
 #include "types.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))

@@ -1,3 +1,12 @@
+#ifndef KERNEL_FILE_H
+#define KERNEL_FILE_H
+
+#include "fs.h"
+#include "sleeplock.h"
+#include "types.h"
+
+struct pipe;
+
 struct file {
   enum { FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE } type;
   int ref; // reference count
@@ -38,3 +47,13 @@ struct devsw {
 extern struct devsw devsw[];
 
 #define CONSOLE 1
+
+struct file *filealloc(void);
+void fileclose(struct file *f);
+struct file *filedup(struct file *f);
+void fileinit(void);
+int fileread(struct file *f, uint64 addr, int n);
+int filestat(struct file *f, uint64 addr);
+int filewrite(struct file *f, uint64 addr, int n);
+
+#endif // KERNEL_FILE_H

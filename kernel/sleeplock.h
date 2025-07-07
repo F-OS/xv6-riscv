@@ -1,3 +1,9 @@
+#ifndef KERNEL_SLEEPLOCK_H
+#define KERNEL_SLEEPLOCK_H
+
+#include "spinlock.h"
+#include "types.h"
+
 // Long-term locks for processes
 struct sleeplock {
   uint locked;        // Is the lock held?
@@ -7,3 +13,10 @@ struct sleeplock {
   char *name; // Name of lock.
   int pid;    // Process holding lock
 };
+
+void acquiresleep(struct sleeplock *lk);
+void releasesleep(struct sleeplock *lk);
+int holdingsleep(struct sleeplock *lk);
+void initsleeplock(struct sleeplock *, char *name);
+
+#endif // KERNEL_SLEEPLOCK_H

@@ -1,10 +1,15 @@
-#include "defs.h"
+#include "trap.h"
+#include "intr.h"
 #include "memlayout.h"
-#include "param.h"
+#include "plic.h"
+#include "printf.h"
 #include "proc.h"
 #include "riscv.h"
 #include "spinlock.h"
+#include "syscall.h"
 #include "types.h"
+#include "uart.h"
+#include "virtio.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -13,7 +18,6 @@ extern char trampoline[], uservec[], userret[];
 
 // in kernelvec.S, calls kerneltrap().
 void kernelvec();
-
 extern int devintr();
 
 void trapinit(void) { initlock(&tickslock, "time"); }

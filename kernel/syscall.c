@@ -1,11 +1,9 @@
 #include "syscall.h"
-#include "defs.h"
-#include "memlayout.h"
-#include "param.h"
+#include "printf.h"
 #include "proc.h"
-#include "riscv.h"
-#include "spinlock.h"
+#include "string.h"
 #include "types.h"
+#include "vm.h"
 
 // Fetch the uint64 at addr from the current process.
 int fetchaddr(uint64 addr, uint64 *ip) {

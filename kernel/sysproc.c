@@ -1,9 +1,10 @@
-#include "defs.h"
 #include "memlayout.h"
 #include "param.h"
 #include "proc.h"
 #include "riscv.h"
 #include "spinlock.h"
+#include "syscall.h"
+#include "trap.h"
 #include "types.h"
 
 uint64 sys_exit(void) {

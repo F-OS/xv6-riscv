@@ -1,3 +1,6 @@
+#ifndef KERNEL_SYSCALL_H
+#define KERNEL_SYSCALL_H
+
 // System call numbers
 #define SYS_fork 1
 #define SYS_exit 2
@@ -20,3 +23,15 @@
 #define SYS_link 19
 #define SYS_mkdir 20
 #define SYS_close 21
+
+#ifndef __ASSEMBLER__
+#include "types.h"
+void argint(int n, int *ip);
+void argaddr(int n, uint64 *ip);
+int argstr(int n, char *buf, int max);
+int fetchstr(uint64 addr, char *buf, int max);
+int fetchaddr(uint64 addr, uint64 *ip);
+void syscall();
+#endif
+
+#endif // KERNEL_SYSCALL_H

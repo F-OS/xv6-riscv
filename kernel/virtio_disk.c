@@ -4,16 +4,19 @@
 //
 // qemu ... -drive file=fs.img,if=none,format=raw,id=x0 -device
 // virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+// qemu ... -drive file=fs.img,if=none,format=raw,id=x0 -device
+// virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 //
 
-#include "buf.h"
-#include "defs.h"
+#include "bio.h"
 #include "fs.h"
+#include "kalloc.h"
 #include "memlayout.h"
-#include "param.h"
+#include "printf.h"
+#include "proc.h"
 #include "riscv.h"
-#include "sleeplock.h"
 #include "spinlock.h"
+#include "string.h"
 #include "types.h"
 #include "virtio.h"
 

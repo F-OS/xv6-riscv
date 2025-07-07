@@ -1,3 +1,7 @@
+#ifndef KERNEL_VIRTIO_H
+#define KERNEL_VIRTIO_H
+
+#include "types.h"
 //
 // virtio device definitions.
 // for both the mmio interface, and virtio descriptors.
@@ -97,3 +101,11 @@ struct virtio_blk_req {
   uint32 reserved;
   uint64 sector;
 };
+
+struct buf;
+
+void virtio_disk_init(void);
+void virtio_disk_rw(struct buf *b, int write);
+void virtio_disk_intr(void);
+
+#endif // KERNEL_VIRTIO_H
