@@ -46,13 +46,13 @@ struct dinode {
 #define IPB (BSIZE / sizeof(struct dinode))
 
 // Block containing inode i
-#define IBLOCK(i, sb) ((i) / IPB + sb.inodestart)
+#define IBLOCK(i, sb) ((i) / IPB + (sb).inodestart)
 
 // Bitmap bits per block
 #define BPB (BSIZE * 8)
 
 // Block of free map containing bit for block b
-#define BBLOCK(b, sb) ((b) / BPB + sb.bmapstart)
+#define BBLOCK(b, sb) ((b) / BPB + (sb).bmapstart)
 
 // Directory is a file containing a sequence of dirent structures.
 #define DIRSIZ 14
@@ -66,8 +66,8 @@ struct inode;
 struct stat;
 
 void fsinit(int dev);
-int dirlink(struct inode *dp, char *name, uint inum);
-struct inode *dirlookup(struct inode *dp, char *name, uint *poff);
+int dirlink(struct inode *dp, const char *name, uint inum);
+struct inode *dirlookup(struct inode *dp, const char *name, uint *poff);
 struct inode *ialloc(uint dev, short type);
 struct inode *idup(struct inode *ip);
 void iinit();
@@ -77,11 +77,11 @@ void iunlock(struct inode *ip);
 void iunlockput(struct inode *ip);
 void iupdate(struct inode *ip);
 int namecmp(const char *s, const char *t);
-struct inode *namei(char *path);
-struct inode *nameiparent(char *path, char *name);
-int readi(struct inode *ip, int user_dst, uint64 dst, uint off, uint n);
+struct inode *namei(const char *path);
+struct inode *nameiparent(const char *path, char *name);
+uint readi(struct inode *ip, int user_dst, uint64 dst, uint off, uint n);
 void stati(struct inode *ip, struct stat *st);
-int writei(struct inode *ip, int user_src, uint64 src, uint off, uint n);
+uint writei(struct inode *ip, int user_src, uint64 src, uint off, uint n);
 void itrunc(struct inode *ip);
 
 #endif // KERNEL_FS_H

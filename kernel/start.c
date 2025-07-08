@@ -1,4 +1,3 @@
-#include "memlayout.h"
 #include "param.h"
 #include "riscv.h"
 #include "types.h"
@@ -7,7 +6,7 @@ void kmain();
 void timerinit();
 
 // entry.S needs one stack per CPU.
-__attribute__((aligned(16))) char stack0[4096 * NCPU];
+char stack0[4096 * NCPU];
 
 // entry.S jumps here in machine mode on stack0.
 void start() {
@@ -31,7 +30,7 @@ void start() {
 
   // configure Physical Memory Protection to give supervisor mode
   // access to all of physical memory.
-  w_pmpaddr0(0x3fffffffffffffull);
+  w_pmpaddr0(0x3fffffffffffffULL);
   w_pmpcfg0(0xf);
 
   // ask for clock interrupts.

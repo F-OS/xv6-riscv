@@ -6,17 +6,17 @@
 
 // Long-term locks for processes
 struct sleeplock {
-  uint locked;        // Is the lock held?
+  bool locked;        // Is the lock held?
   struct spinlock lk; // spinlock protecting this sleep lock
 
   // For debugging:
-  char *name; // Name of lock.
+  const char *name; // Name of lock.
   int pid;    // Process holding lock
 };
 
 void acquiresleep(struct sleeplock *lk);
 void releasesleep(struct sleeplock *lk);
 int holdingsleep(struct sleeplock *lk);
-void initsleeplock(struct sleeplock *, char *name);
+void initsleeplock(struct sleeplock *lk, const char *name);
 
 #endif // KERNEL_SLEEPLOCK_H

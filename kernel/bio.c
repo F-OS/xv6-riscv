@@ -14,14 +14,12 @@
 //     so do not keep them longer than necessary.
 
 #include "bio.h"
-#include "fs.h"
 #include "param.h"
-#include "riscv.h"
+#include "printf.h"
 #include "sleeplock.h"
 #include "spinlock.h"
 #include "types.h"
 #include "virtio.h"
-#include "printf.h"
 
 struct {
   struct spinlock lock;
@@ -34,7 +32,7 @@ struct {
 } bcache;
 
 void binit(void) {
-  struct buf *b;
+  struct buf *b = NULL;
 
   initlock(&bcache.lock, "bcache");
 
@@ -54,7 +52,7 @@ void binit(void) {
 // If not found, allocate a buffer.
 // In either case, return locked buffer.
 static struct buf *bget(uint dev, uint blockno) {
-  struct buf *b;
+  struct buf *b = NULL;
 
   acquire(&bcache.lock);
 
@@ -74,7 +72,7 @@ static struct buf *bget(uint dev, uint blockno) {
     if (b->refcnt == 0) {
       b->dev = dev;
       b->blockno = blockno;
-      b->valid = 0;
+      b->valid = false;
       b->refcnt = 1;
       release(&bcache.lock);
       acquiresleep(&b->lock);
@@ -86,28 +84,28 @@ static struct buf *bget(uint dev, uint blockno) {
 
 // Return a locked buf with the contents of the indicated block.
 struct buf *bread(uint dev, uint blockno) {
-  struct buf *b;
+  struct buf *b = NULL;
 
   b = bget(dev, blockno);
   if (!b->valid) {
     virtio_disk_rw(b, 0);
-    b->valid = 1;
+    b->valid = true;
   }
   return b;
 }
 
 // Write b's contents to disk.  Must be locked.
 void bwrite(struct buf *b) {
-  if (!holdingsleep(&b->lock))
+  if (!holdingsleep(&b->lock)) {
     panic("bwrite");
+  }
   virtio_disk_rw(b, 1);
 }
 
 // Release a locked buffer.
 // Move to the head of the most-recently-used list.
 void brelse(struct buf *b) {
-  if (!holdingsleep(&b->lock))
-    panic("brelse");
+  kassert(holdingsleep(&b->lock), "brelse: buffer not locked");
 
   releasesleep(&b->lock);
 

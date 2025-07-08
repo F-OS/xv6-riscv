@@ -14,7 +14,7 @@ uint64 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm);
 uint64 uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz);
 int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz);
 void uvmfree(pagetable_t pagetable, uint64 sz);
-void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free);
+void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, bool do_free);
 void uvmclear(pagetable_t pagetable, uint64 va);
 pte_t *walk(pagetable_t pagetable, uint64 va, int alloc);
 uint64 walkaddr(pagetable_t pagetable, uint64 va);

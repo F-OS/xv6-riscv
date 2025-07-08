@@ -2,10 +2,7 @@
 #define INTR_H
 
 #include "types.h"
-
-#define INT_USER 0
-#define INT_KERNEL 1
-void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, int *do_yield,
-                      int mode);
+void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, bool *do_yield,
+                      bool is_kernel);
 
 #endif // INTR_H

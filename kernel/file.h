@@ -28,7 +28,7 @@ struct inode {
   uint inum;             // Inode number
   int ref;               // Reference count
   struct sleeplock lock; // protects everything below here
-  int valid;             // inode has been read from disk?
+  bool valid;             // inode has been read from disk?
 
   short type; // copy of disk inode
   short major;
@@ -40,8 +40,8 @@ struct inode {
 
 // map major device number to device functions.
 struct devsw {
-  int (*read)(int, uint64, int);
-  int (*write)(int, uint64, int);
+  int (*read)(int, uint64, uint);
+  int (*write)(int, uint64, uint);
 };
 
 extern struct devsw devsw[];
@@ -52,8 +52,8 @@ struct file *filealloc(void);
 void fileclose(struct file *f);
 struct file *filedup(struct file *f);
 void fileinit(void);
-int fileread(struct file *f, uint64 addr, int n);
+int fileread(struct file *f, uint64 addr, uint n);
 int filestat(struct file *f, uint64 addr);
-int filewrite(struct file *f, uint64 addr, int n);
+int filewrite(struct file *f, uint64 addr, uint n);
 
 #endif // KERNEL_FILE_H

@@ -7,7 +7,7 @@
 
 // which hart (core) is this?
 static inline uint64 r_mhartid() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, mhartid" : "=r"(x));
   return x;
 }
@@ -21,7 +21,7 @@ static inline uint64 r_mhartid() {
 #define MSTATUS_MIE (1L << 3) // machine-mode interrupt enable.
 
 static inline uint64 r_mstatus() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, mstatus" : "=r"(x));
   return x;
 }
@@ -46,7 +46,7 @@ static inline void w_mepc(uint64 x) {
 #define SSTATUS_UIE (1L << 0)  // User Interrupt Enable
 
 static inline uint64 r_sstatus() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, sstatus" : "=r"(x));
   return x;
 }
@@ -57,7 +57,7 @@ static inline void w_sstatus(uint64 x) {
 
 // Supervisor Interrupt Pending
 static inline uint64 r_sip() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, sip" : "=r"(x));
   return x;
 }
@@ -69,7 +69,7 @@ static inline void w_sip(uint64 x) { asm volatile("csrw sip, %0" : : "r"(x)); }
 #define SIE_STIE (1L << 5) // timer
 #define SIE_SSIE (1L << 1) // software
 static inline uint64 r_sie() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, sie" : "=r"(x));
   return x;
 }
@@ -79,7 +79,7 @@ static inline void w_sie(uint64 x) { asm volatile("csrw sie, %0" : : "r"(x)); }
 // Machine-mode Interrupt Enable
 #define MIE_STIE (1L << 5) // supervisor timer
 static inline uint64 r_mie() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, mie" : "=r"(x));
   return x;
 }
@@ -94,14 +94,14 @@ static inline void w_sepc(uint64 x) {
 }
 
 static inline uint64 r_sepc() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, sepc" : "=r"(x));
   return x;
 }
 
 // Machine Exception Delegation
 static inline uint64 r_medeleg() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, medeleg" : "=r"(x));
   return x;
 }
@@ -112,7 +112,7 @@ static inline void w_medeleg(uint64 x) {
 
 // Machine Interrupt Delegation
 static inline uint64 r_mideleg() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, mideleg" : "=r"(x));
   return x;
 }
@@ -128,14 +128,14 @@ static inline void w_stvec(uint64 x) {
 }
 
 static inline uint64 r_stvec() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, stvec" : "=r"(x));
   return x;
 }
 
 // Supervisor Timer Comparison Register
 static inline uint64 r_stimecmp() {
-  uint64 x;
+  uint64 x = 0;
   // asm volatile("csrr %0, stimecmp" : "=r" (x) );
   asm volatile("csrr %0, 0x14d" : "=r"(x));
   return x;
@@ -148,7 +148,7 @@ static inline void w_stimecmp(uint64 x) {
 
 // Machine Environment Configuration Register
 static inline uint64 r_menvcfg() {
-  uint64 x;
+  uint64 x = 0;
   // asm volatile("csrr %0, menvcfg" : "=r" (x) );
   asm volatile("csrr %0, 0x30a" : "=r"(x));
   return x;
@@ -171,7 +171,7 @@ static inline void w_pmpaddr0(uint64 x) {
 // use riscv's sv39 page table scheme.
 #define SATP_SV39 (8L << 60)
 
-#define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)pagetable) >> 12))
+#define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)(pagetable)) >> 12))
 
 // supervisor address translation and protection;
 // holds the address of the page table.
@@ -180,21 +180,21 @@ static inline void w_satp(uint64 x) {
 }
 
 static inline uint64 r_satp() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, satp" : "=r"(x));
   return x;
 }
 
 // Supervisor Trap Cause
 static inline uint64 r_scause() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, scause" : "=r"(x));
   return x;
 }
 
 // Supervisor Trap Value
 static inline uint64 r_stval() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, stval" : "=r"(x));
   return x;
 }
@@ -205,14 +205,14 @@ static inline void w_mcounteren(uint64 x) {
 }
 
 static inline uint64 r_mcounteren() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, mcounteren" : "=r"(x));
   return x;
 }
 
 // machine-mode cycle counter
 static inline uint64 r_time() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("csrr %0, time" : "=r"(x));
   return x;
 }
@@ -230,7 +230,7 @@ static inline int intr_get() {
 }
 
 static inline uint64 r_sp() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("mv %0, sp" : "=r"(x));
   return x;
 }
@@ -238,7 +238,7 @@ static inline uint64 r_sp() {
 // read and write tp, the thread pointer, which xv6 uses to hold
 // this core's hartid (core number), the index into cpus[].
 static inline uint64 r_tp() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("mv %0, tp" : "=r"(x));
   return x;
 }
@@ -246,7 +246,7 @@ static inline uint64 r_tp() {
 static inline void w_tp(uint64 x) { asm volatile("mv tp, %0" : : "r"(x)); }
 
 static inline uint64 r_ra() {
-  uint64 x;
+  uint64 x = 0;
   asm volatile("mv %0, ra" : "=r"(x));
   return x;
 }
@@ -275,7 +275,7 @@ typedef uint64 *pagetable_t; // 512 PTEs
 #define PTE_U (1L << 4) // user can access
 
 // shift a physical address to the right place for a PTE.
-#define PA2PTE(pa) ((((uint64)pa) >> 12) << 10)
+#define PA2PTE(pa) ((((uint64)(pa)) >> 12) << 10)
 
 #define PTE2PA(pte) (((pte) >> 10) << 12)
 

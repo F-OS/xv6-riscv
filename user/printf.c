@@ -33,7 +33,7 @@ static void printint(int fd, int xx, int base, int sgn) {
 }
 
 static void printptr(int fd, uint64 x) {
-  int i;
+  uint i;
   putc(fd, '0');
   putc(fd, 'x');
   for (i = 0; i < (sizeof(uint64) * 2); i++, x <<= 4)
@@ -42,7 +42,7 @@ static void printptr(int fd, uint64 x) {
 
 // Print to the given fd. Only understands %d, %x, %p, %s.
 void vprintf(int fd, const char *fmt, va_list ap) {
-  char *s;
+  const char *s;
   int c0, c1, c2, i, state;
 
   state = 0;
@@ -136,6 +136,7 @@ void fprintf(int fd, const char *fmt, ...) {
 
   va_start(ap, fmt);
   vprintf(fd, fmt, ap);
+  va_end(ap);
 }
 
 void printf(const char *fmt, ...) {
@@ -143,4 +144,5 @@ void printf(const char *fmt, ...) {
 
   va_start(ap, fmt);
   vprintf(1, fmt, ap);
+  va_end(ap);
 }

@@ -1,6 +1,7 @@
 #include "bio.h"
 #include "console.h"
 #include "file.h"
+#include "fs.h"
 #include "kalloc.h"
 #include "plic.h"
 #include "printf.h"
@@ -9,16 +10,16 @@
 #include "virtio.h"
 #include "vm.h"
 
-volatile static int started = 0;
+static volatile bool started = false;
 
 // start() jumps here in supervisor mode on all CPUs.
 void kmain() {
   if (cpuid() == 0) {
     consoleinit();
     printfinit();
-    printf("\n");
-    printf("xv6 kernel is booting\n");
-    printf("\n");
+    putstr("\n");
+    putstr("xv6 kernel is booting\n");
+    putstr("\n");
     kinit();            // physical page allocator
     kvminit();          // create kernel page table
     kvminithart();      // turn on paging
@@ -33,10 +34,11 @@ void kmain() {
     virtio_disk_init(); // emulated hard disk
     userinit();         // first user process
     __sync_synchronize();
-    started = 1;
+    started = true;
   } else {
-    while (started == 0)
+    while (started == false) {
       ;
+    }
     __sync_synchronize();
     printf("hart %d starting\n", cpuid());
     kvminithart();  // turn on paging

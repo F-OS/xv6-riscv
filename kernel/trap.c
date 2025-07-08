@@ -1,15 +1,11 @@
 #include "trap.h"
 #include "intr.h"
 #include "memlayout.h"
-#include "plic.h"
 #include "printf.h"
 #include "proc.h"
 #include "riscv.h"
 #include "spinlock.h"
-#include "syscall.h"
 #include "types.h"
-#include "uart.h"
-#include "virtio.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -31,48 +27,25 @@ void trapinithart(void) { w_stvec((uint64)kernelvec); }
 //
 void usertrap(void) {
 
-  if ((r_sstatus() & SSTATUS_SPP) != 0)
+  if ((r_sstatus() & SSTATUS_SPP) != 0) {
     panic("usertrap: not from user mode");
+  }
 
   // send interrupts and exceptions to kerneltrap(),
   // since we're now in the kernel.
   w_stvec((uint64)kernelvec);
 
-  int do_yield = 0;
-  
-  /*
-  if (r_scause() == 8) {
-    // system call
-
-    if (killed(p))
-      exit(-1);
-
-    // sepc points to the ecall instruction,
-    // but we want to return to the next instruction.
-    p->trapframe->epc += 4;
-
-    // an interrupt will change sepc, scause, and sstatus,
-    // so enable only now that we're done with those registers.
-    intr_on();
-
-    syscall();
-  } else if ((which_dev = devintr()) != 0) {
-    // ok
-  } else {
-    printf("usertrap(): unexpected scause 0x%lx pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=0x%lx stval=0x%lx\n", r_sepc(), r_stval());
-    setkilled(p);
-  }
-    */
   uint64 scause = r_scause();
   uint64 sepc = r_sepc();
   uint64 sstatus = r_sstatus();
-
-  lookup_interrupt(scause, sstatus, sepc, &do_yield, INT_USER);
+  
+  bool do_yield = false;
+  lookup_interrupt(scause, sstatus, sepc, &do_yield, false);
 
   // give up the CPU if this is a timer interrupt.
-  if (do_yield == 1)
+  if (do_yield == true) {
     yield();
+  }
 
   usertrapret();
 }
@@ -128,18 +101,20 @@ void kerneltrap() {
   uint64 sstatus = r_sstatus();
   uint64 scause = r_scause();
 
-  if ((sstatus & SSTATUS_SPP) == 0)
+  if ((sstatus & SSTATUS_SPP) == 0) {
     panic("kerneltrap: not from supervisor mode");
-  if (intr_get() != 0)
+  }
+  if (intr_get() != 0) {
     panic("kerneltrap: interrupts enabled");
+  }
 
-
-  int do_yield = 0;
-  lookup_interrupt(scause, sstatus, sepc, &do_yield, INT_KERNEL);
+  bool do_yield = false;
+  lookup_interrupt(scause, sstatus, sepc, &do_yield, true);
 
   // give up the CPU if this is a timer interrupt.
-  if (do_yield == 1 && myproc() != 0)
+  if (do_yield == true && myproc() != 0) {
     yield();
+  }
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.

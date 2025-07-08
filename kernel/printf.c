@@ -8,55 +8,65 @@
 #include "spinlock.h"
 #include "types.h"
 
-volatile int panicked = 0;
+volatile bool panicked = false;
 
 // lock to avoid interleaving concurrent printf's.
 static struct {
   struct spinlock lock;
-  int locking;
+  bool locking;
 } pr;
 
 static char digits[] = "0123456789abcdef";
 
 static void printint(long long xx, int base, int sign) {
   char buf[16];
-  int i;
-  unsigned long long x;
+  int i = 0;
+  unsigned long long x = 0;
 
-  if (sign && (sign = (xx < 0)))
+  if (sign && (sign = (xx < 0))) {
     x = -xx;
-  else
+  } else {
     x = xx;
+  }
 
   i = 0;
   do {
     buf[i++] = digits[x % base];
   } while ((x /= base) != 0);
 
-  if (sign)
+  if (sign) {
     buf[i++] = '-';
+  }
 
-  while (--i >= 0)
+  while (--i >= 0) {
     consputc(buf[i]);
+  }
 }
 
 static void printptr(uint64 x) {
-  int i;
+  uint i = 0;
   consputc('0');
   consputc('x');
-  for (i = 0; i < (sizeof(uint64) * 2); i++, x <<= 4)
+  for (i = 0; i < (sizeof(uint64) * 2); i++, x <<= 4) {
     consputc(digits[x >> (sizeof(uint64) * 8 - 4)]);
+  }
 }
 
 // Print to the console.
-int printf(char *fmt, ...) {
+int printf(const char *fmt, ...) {
   va_list ap;
-  int i, cx, c0, c1, c2, locking;
-  char *s;
+  int i = 0;
+  int cx = 0;
+  int c0 = 0;
+  int c1 = 0;
+  int c2 = 0;
+  bool locking = false;
+  const char *s = NULL;
 
   locking = pr.locking;
-  if (locking)
+  if (locking) {
     acquire(&pr.lock);
+  }
 
   va_start(ap, fmt);
   for (i = 0; (cx = fmt[i] & 0xff) != 0; i++) {
@@ -67,10 +77,12 @@ int printf(char *fmt, ...) {
     i++;
     c0 = fmt[i + 0] & 0xff;
     c1 = c2 = 0;
-    if (c0)
+    if (c0) {
       c1 = fmt[i + 1] & 0xff;
-    if (c1)
+    }
+    if (c1) {
       c2 = fmt[i + 2] & 0xff;
+    }
     if (c0 == 'd') {
       printint(va_arg(ap, int), 10, 1);
     } else if (c0 == 'l' && c1 == 'd') {
@@ -98,10 +110,12 @@ int printf(char *fmt, ...) {
     } else if (c0 == 'p') {
       printptr(va_arg(ap, uint64));
     } else if (c0 == 's') {
-      if ((s = va_arg(ap, char *)) == 0)
+      if ((s = va_arg(ap, char *)) == 0) {
         s = "(null)";
-      for (; *s; s++)
+      }
+      for (; *s; s++) {
         consputc(*s);
+      }
     } else if (c0 == '%') {
       consputc('%');
     } else if (c0 == 0) {
@@ -142,22 +156,34 @@ int printf(char *fmt, ...) {
   }
   va_end(ap);
 
-  if (locking)
+  if (locking) {
     release(&pr.lock);
+  }
 
   return 0;
 }
 
-void panic(char *s) {
-  pr.locking = 0;
-  printf("panic: ");
-  printf("%s\n", s);
-  panicked = 1; // freeze uart output from other CPUs
-  for (;;)
+void putstr(const char *s) {
+  if (s == 0) {
+    s = "(null)";
+  }
+  while (*s) {
+    consputc(*s++);
+  }
+}
+
+void panic(const char *s) {
+  pr.locking = false;
+  putstr("panic: ");
+  putstr(s);
+  putstr("\n");
+  panicked = true; // freeze uart output from other CPUs
+  for (;;) {
     ;
+  }
 }
 
 void printfinit(void) {
   initlock(&pr.lock, "pr");
-  pr.locking = 1;
+  pr.locking = true;
 }

@@ -13,5 +13,10 @@ typedef unsigned long uint64;
 typedef uint64 pde_t;
 
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
+#define NULL ((void *)0)
+
+typedef _Bool bool;
+#define true 1
+#define false 0
 
 #endif // KERNEL_TYPES_H

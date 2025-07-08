@@ -1,17 +1,13 @@
 // Sleeping locks
 
 #include "sleeplock.h"
-#include "memlayout.h"
-#include "param.h"
 #include "proc.h"
-#include "riscv.h"
 #include "spinlock.h"
-#include "types.h"
 
-void initsleeplock(struct sleeplock *lk, char *name) {
+void initsleeplock(struct sleeplock *lk, const char *name) {
   initlock(&lk->lk, "sleep lock");
   lk->name = name;
-  lk->locked = 0;
+  lk->locked = false;
   lk->pid = 0;
 }
 
@@ -20,14 +16,14 @@ void acquiresleep(struct sleeplock *lk) {
   while (lk->locked) {
     sleep(lk, &lk->lk);
   }
-  lk->locked = 1;
+  lk->locked = true;
   lk->pid = myproc()->pid;
   release(&lk->lk);
 }
 
 void releasesleep(struct sleeplock *lk) {
   acquire(&lk->lk);
-  lk->locked = 0;
+  lk->locked = false;
   lk->pid = 0;
   wakeup(lk);
   release(&lk->lk);

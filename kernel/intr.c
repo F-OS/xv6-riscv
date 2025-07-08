@@ -11,16 +11,47 @@
 #include "uart.h"
 #include "virtio.h"
 
-void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, int *do_yield,
-                      int mode) {
-  if (mode == INT_USER) {
+void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, bool *do_yield,
+                      bool is_kernel) {
+  (void)sstatus;
+  if (is_kernel) {
+    // kernel trap handling
+    if (scause == 0x8000000000000009L) {
+      // PLIC
+      int irq = plic_claim();
+      if (irq == UART0_IRQ) {
+        uartintr();
+      } else if (irq == VIRTIO0_IRQ) {
+        virtio_disk_intr();
+      } else if (irq != 0) {
+        printf("unexpected interrupt %d\n", irq);
+      }
+      if (irq) {
+        plic_complete(irq);
+      }
+    } else if (scause == 0x8000000000000005L) {
+      // timer interrupt
+      if (cpuid() == 0) {
+        acquire(&tickslock);
+        ticks++;
+        wakeup(&ticks);
+        release(&tickslock);
+      }
+      w_stimecmp(r_time() + 1000000);
+      *do_yield = true;
+    } else {
+      printf("kerneltrap(): unexpected scause 0x%lx\n", scause);
+    }
+  } else {
+    // user trap handling
     struct proc *p = myproc();
     // save user program counter.
     p->trapframe->epc = sepc;
     if (scause == 8) {
       // system call
-      if (killed(p))
+      if (killed(p)) {
         exit(-1);
+      }
       // sepc points to the ecall instruction,
       // but we want to return to the next instruction.
       p->trapframe->epc += 4;
@@ -53,41 +84,14 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, int *do_yield,
       // the interrupt request. 1000000 is about a tenth
       // of a second.
       w_stimecmp(r_time() + 1000000);
-      *do_yield = 1;
+      *do_yield = true;
     } else {
       printf("usertrap(): unexpected scause 0x%lx pid=%d\n", scause, p->pid);
       printf("            sepc=0x%lx stval=0x%lx\n", sepc, r_stval());
       setkilled(p);
     }
-    if (killed(p))
+    if (killed(p)) {
       exit(-1);
-  } else if (mode == INT_KERNEL) {
-    // kernel trap handling
-    if (scause == 0x8000000000000009L) {
-      // PLIC
-      int irq = plic_claim();
-      if (irq == UART0_IRQ) {
-        uartintr();
-      } else if (irq == VIRTIO0_IRQ) {
-        virtio_disk_intr();
-      } else if (irq != 0) {
-        printf("unexpected interrupt %d\n", irq);
-      }
-      if (irq) {
-        plic_complete(irq);
-      }
-    } else if (scause == 0x8000000000000005L) {
-      // timer interrupt
-      if (cpuid() == 0) {
-        acquire(&tickslock);
-        ticks++;
-        wakeup(&ticks);
-        release(&tickslock);
-      }
-      w_stimecmp(r_time() + 1000000);
-      *do_yield = 1;
-    } else {
-      printf("kerneltrap(): unexpected scause 0x%lx\n", scause);
     }
   }
 }
