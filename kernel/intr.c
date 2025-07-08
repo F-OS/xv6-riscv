@@ -37,7 +37,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, bool *do_yield
         wakeup(&ticks);
         release(&tickslock);
       }
-      w_stimecmp(r_time() + 1000000);
+      w_stimecmp(r_time() + 100000);
       *do_yield = true;
     } else {
       printf("kerneltrap(): unexpected scause 0x%lx\n", scause);
@@ -83,7 +83,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, bool *do_yield
       // ask for the next timer interrupt. this also clears
       // the interrupt request. 1000000 is about a tenth
       // of a second.
-      w_stimecmp(r_time() + 1000000);
+      w_stimecmp(r_time() + 100000);
       *do_yield = true;
     } else {
       printf("usertrap(): unexpected scause 0x%lx pid=%d\n", scause, p->pid);

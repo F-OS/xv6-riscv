@@ -38,15 +38,11 @@ uint64 sys_sleep(void) {
   uint ticks0 = 0;
 
   argint(0, &n);
-  if (n < 0) {
-    n = 0;
+  if (n <= 0) {
+    return 0; // don't sleep if n <= 0
   }
   acquire(&tickslock);
   ticks0 = ticks;
-  if(n <= 0) {
-    release(&tickslock);
-    return 0; // don't sleep if n <= 0
-  }
   while (ticks - ticks0 < (uint)n) {
     if (killed(myproc())) {
       release(&tickslock);
