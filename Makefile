@@ -61,9 +61,10 @@ OBJDUMP = $(TOOLPREFIX)objdump
 
 CFLAGS = -Wall -Wextra -Wstrict-aliasing=3 -Wwrite-strings -Wvla -Wstringop-overflow=4 -Wno-logical-op-parentheses -Wshadow -fanalyzer -O -fno-omit-frame-pointer -ggdb -gdwarf-2
 CFLAGS += -Wcast-align=strict -fanalyzer
-CFLAGS += -O2
+CFLAGS += -O3 -g -std=gnu2x 
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
+
 # CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
 CFLAGS += -fno-common -nostdlib
 CFLAGS += -fno-builtin-strncpy -fno-builtin-strncmp -fno-builtin-strlen -fno-builtin-memset
@@ -145,6 +146,7 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
+	$U/_sleep\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
