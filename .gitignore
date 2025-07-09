@@ -17,3 +17,7 @@ user/usys.S
 .gdbinit
 .cache/
 compile_commands.json
+*.sln*
+*.vcxproj*
+.vs/
+kernel/x64

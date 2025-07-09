@@ -61,7 +61,7 @@ OBJDUMP = $(TOOLPREFIX)objdump
 
 CFLAGS = -Wall -Wextra -Wstrict-aliasing=3 -Wwrite-strings -Wvla -Wstringop-overflow=4 -Wno-logical-op-parentheses -Wshadow -fanalyzer -O -fno-omit-frame-pointer -ggdb -gdwarf-2
 CFLAGS += -Wcast-align=strict -fanalyzer
-CFLAGS += -O3 -g -std=gnu2x 
+CFLAGS += -O3 -g -std=gnu2x -fopt-info-missed=dump
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 
@@ -186,3 +186,5 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
+format:
+	clang-format-19 -i $K/*.c $K/*.h $U/*.c $U/*.h
