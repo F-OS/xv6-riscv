@@ -2,11 +2,6 @@
 
 #include "kernel/fcntl.h"
 #include "kernel/file.h"
-#include "kernel/fs.h"
-#include "kernel/sleeplock.h"
-#include "kernel/spinlock.h"
-#include "kernel/stat.h"
-#include "kernel/types.h"
 #include "user/user.h"
 
 const char *argv[] = {"sh", 0};

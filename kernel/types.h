@@ -1,6 +1,8 @@
 #ifndef KERNEL_TYPES_H
 #define KERNEL_TYPES_H
 
+#include <stdbool.h>
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
@@ -14,8 +16,5 @@ typedef uint64 pde_t;
 
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 #define NULL ((void *)0)
-
-#define true 1
-#define false 0
 
 #endif // KERNEL_TYPES_H

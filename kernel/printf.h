@@ -10,8 +10,8 @@ void printfinit(void);
 #define kassert(x, why)                                                        \
   do {                                                                         \
     if (!(x)) {                                                                \
-      panic("Assertion failed: "  #x  " in "  __FILE__  " at line "      \
-            LINE_STRING  ": "  why);                                         \
+      panic("Assertion failed: " #x " in " __FILE__ " at line " LINE_STRING    \
+            ": " why);                                                         \
     }                                                                          \
   } while (0)
 #endif // PRINTF_H

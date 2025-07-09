@@ -28,7 +28,7 @@ struct inode {
   uint inum;             // Inode number
   int ref;               // Reference count
   struct sleeplock lock; // protects everything below here
-  bool valid;             // inode has been read from disk?
+  bool valid;            // inode has been read from disk?
 
   short type; // copy of disk inode
   short major;

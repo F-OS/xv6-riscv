@@ -68,6 +68,7 @@ static inline void w_sip(uint64 x) { asm volatile("csrw sip, %0" : : "r"(x)); }
 #define SIE_SEIE (1L << 9) // external
 #define SIE_STIE (1L << 5) // timer
 #define SIE_SSIE (1L << 1) // software
+
 static inline uint64 r_sie() {
   uint64 x = 0;
   asm volatile("csrr %0, sie" : "=r"(x));
@@ -78,6 +79,7 @@ static inline void w_sie(uint64 x) { asm volatile("csrw sie, %0" : : "r"(x)); }
 
 // Machine-mode Interrupt Enable
 #define MIE_STIE (1L << 5) // supervisor timer
+
 static inline uint64 r_mie() {
   uint64 x = 0;
   asm volatile("csrr %0, mie" : "=r"(x));

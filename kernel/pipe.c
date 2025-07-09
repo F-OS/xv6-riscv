@@ -10,11 +10,11 @@
 struct pipe {
   struct spinlock lock;
   char data[PIPESIZE];
-  uint nread;    // number of bytes read
-  uint nwrite;   // number of bytes written
+  uint nread;     // number of bytes read
+  uint nwrite;    // number of bytes written
   bool readopen;  // read fd is still open
   bool writeopen; // write fd is still open
-} ;
+};
 
 int pipealloc(struct file **f0, struct file **f1) {
   struct pipe *pi = NULL;

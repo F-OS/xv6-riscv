@@ -7,7 +7,7 @@
 
 struct buf {
   bool valid; // has data been read from disk?
-  int disk;  // does disk "own" buf?
+  int disk;   // does disk "own" buf?
   uint dev;
   uint blockno;
   struct sleeplock lock;

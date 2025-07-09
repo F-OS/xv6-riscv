@@ -41,7 +41,7 @@ struct log {
   int start;
   int size;
   int outstanding; // how many FS sys calls are executing.
-  bool committing;  // in commit(), please wait.
+  bool committing; // in commit(), please wait.
   int dev;
   struct logheader lh;
 };

@@ -11,8 +11,8 @@
 #include "uart.h"
 #include "virtio.h"
 
-void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc, bool *do_yield,
-                      bool is_kernel) {
+void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
+                      bool *do_yield, bool is_kernel) {
   (void)sstatus;
   if (is_kernel) {
     // kernel trap handling

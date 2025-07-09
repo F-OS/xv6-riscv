@@ -1,7 +1,7 @@
 #include "types.h"
 #ifdef __GNUC__
 // Don't let GCC pattern-match these functions' bodies into self-calls
-#pragma GCC optimize ("no-tree-loop-distribute-patterns")
+#pragma GCC optimize("no-tree-loop-distribute-patterns")
 #endif
 
 void *memset(void *dst, int c, uint n) {

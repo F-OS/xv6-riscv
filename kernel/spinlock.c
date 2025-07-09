@@ -67,9 +67,7 @@ void release(struct spinlock *lk) {
 
 // Check whether this cpu is holding the lock.
 // Interrupts must be off.
-int holding(struct spinlock *lk) {
-  return (lk->locked && lk->cpu == mycpu());
-}
+int holding(struct spinlock *lk) { return (lk->locked && lk->cpu == mycpu()); }
 
 // push_off/pop_off are like intr_off()/intr_on() except that they are matched:
 // it takes two pop_off()s to undo two push_off()s.  Also, if interrupts

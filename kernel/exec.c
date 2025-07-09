@@ -1,5 +1,4 @@
 #include "elf.h"
-#include "file.h"
 #include "fs.h"
 #include "log.h"
 #include "param.h"
@@ -11,7 +10,7 @@
 #include "vm.h"
 
 static int loadseg(pagetable_t pagetable, uint64 va, struct inode *ip,
-  uint offset, uint sz);
+                   uint offset, uint sz);
 
 int flags2perm(int flags) {
   int perm = 0;

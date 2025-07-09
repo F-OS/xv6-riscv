@@ -2,7 +2,6 @@
 #define KERNEL_SLEEPLOCK_H
 
 #include "spinlock.h"
-#include "types.h"
 
 // Long-term locks for processes
 struct sleeplock {
@@ -11,7 +10,7 @@ struct sleeplock {
 
   // For debugging:
   const char *name; // Name of lock.
-  int pid;    // Process holding lock
+  int pid;          // Process holding lock
 };
 
 void acquiresleep(struct sleeplock *lk);

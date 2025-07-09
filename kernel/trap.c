@@ -38,7 +38,7 @@ void usertrap(void) {
   uint64 scause = r_scause();
   uint64 sepc = r_sepc();
   uint64 sstatus = r_sstatus();
-  
+
   bool do_yield = false;
   lookup_interrupt(scause, sstatus, sepc, &do_yield, false);
 

@@ -3,8 +3,6 @@
 #include "kernel/memlayout.h"
 #include "kernel/param.h"
 #include "kernel/riscv.h"
-#include "kernel/stat.h"
-#include "kernel/syscall.h"
 #include "kernel/types.h"
 #include "user/user.h"
 
@@ -2184,6 +2182,7 @@ void validatetest(char *s) {
 
 // does uninitialized data start out zero?
 char uninit[10000];
+
 void bsstest(char *s) {
   int i;
 
@@ -2356,6 +2355,7 @@ void nowrite(char *s) {
 // the virtual page address to uint, which (with certain wild system
 // call arguments) resulted in a kernel page faults.
 void *big = (void *)0xeaeb0b5b00002f5e;
+
 void pgbug(char *s) {
   char *argv[1];
   argv[0] = 0;

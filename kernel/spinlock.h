@@ -10,8 +10,8 @@ struct spinlock {
   bool locked; // Is the lock held?
 
   // For debugging:
-  const char *name;      // Name of lock.
-  struct cpu *cpu; // The cpu holding the lock.
+  const char *name; // Name of lock.
+  struct cpu *cpu;  // The cpu holding the lock.
 };
 
 void acquire(struct spinlock *lk);

@@ -9,8 +9,6 @@
 //   control-p -- print process list
 //
 
-#include <stdarg.h>
-
 #include "file.h"
 #include "proc.h"
 #include "spinlock.h"
@@ -90,7 +88,8 @@ int consoleread(int user_dst, uint64 dst, uint n) {
 
     c = cons.buf[cons.r++ % INPUT_BUF_SIZE];
 
-    if (c == C('D')) { // end-of-file
+    if (c == C('D')) {
+      // end-of-file
       if (n < target) {
         // Save ^D for next time, to make sure
         // caller gets a 0-byte result.
