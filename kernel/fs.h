@@ -70,7 +70,7 @@ int dirlink(struct inode *dp, const char *name, uint inum);
 struct inode *dirlookup(struct inode *dp, const char *name, uint *poff);
 struct inode *ialloc(uint dev, short type);
 struct inode *idup(struct inode *ip);
-void iinit();
+void iinit(void);
 void ilock(struct inode *ip);
 void iput(struct inode *ip);
 void iunlock(struct inode *ip);

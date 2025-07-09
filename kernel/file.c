@@ -15,6 +15,7 @@
 #include "vm.h"
 
 struct devsw devsw[NDEV];
+
 struct {
   struct spinlock lock;
   struct file file[NFILE];
@@ -51,8 +52,6 @@ struct file *filedup(struct file *f) {
 
 // Close file f.  (Decrement ref count, close when reaches 0.)
 void fileclose(struct file *f) {
-  struct file ff;
-
   acquire(&ftable.lock);
   if (f->ref < 1) {
     panic("fileclose");
@@ -61,7 +60,7 @@ void fileclose(struct file *f) {
     release(&ftable.lock);
     return;
   }
-  ff = *f;
+  struct file ff = *f;
   f->ref = 0;
   f->type = FD_NONE;
   release(&ftable.lock);

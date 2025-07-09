@@ -8,16 +8,14 @@
 //
 // wrapper so that it's OK if main() does not call exit().
 //
-void start() {
-  extern int main();
+void start(void) {
+  extern int main(void);
   main();
   exit(0);
 }
 
 char *strcpy(char *s, const char *t) {
-  char *os;
-
-  os = s;
+  char *os = s;
   while ((*s++ = *t++) != 0)
     ;
   return os;
@@ -39,8 +37,7 @@ uint strlen(const char *s) {
 
 void *memset(void *dst, int c, uint n) {
   char *cdst = (char *)dst;
-  uint i;
-  for (i = 0; i < n; i++) {
+  for (uint i = 0; i < n; i++) {
     cdst[i] = c;
   }
   return dst;
@@ -54,11 +51,8 @@ char *strchr(const char *s, char c) {
 }
 
 void *memmove(void *vdst, const void *vsrc, int n) {
-  char *dst;
-  const char *src;
-
-  dst = vdst;
-  src = vsrc;
+  char *dst = vdst;
+  const char *src = vsrc;
   if (src > dst) {
     while (n-- > 0)
       *dst++ = *src++;
@@ -89,11 +83,11 @@ void *memcpy(void *dst, const void *src, uint n) {
 #pragma GCC diagnostic pop
 
 char *gets(char *buf, int max) {
-  int i, cc;
+  int i;
   char c;
 
   for (i = 0; i + 1 < max;) {
-    cc = read(0, &c, 1);
+    int cc = read(0, &c, 1);
     if (cc < 1)
       break;
     buf[i++] = c;
@@ -105,21 +99,16 @@ char *gets(char *buf, int max) {
 }
 
 int stat(const char *n, struct stat *st) {
-  int fd;
-  int r;
-
-  fd = open(n, O_RDONLY);
+  int fd = open(n, O_RDONLY);
   if (fd < 0)
     return -1;
-  r = fstat(fd, st);
+  int r = fstat(fd, st);
   close(fd);
   return r;
 }
 
 int atoi(const char *s) {
-  int n;
-
-  n = 0;
+  int n = 0;
   while ('0' <= *s && *s <= '9')
     n = n * 10 + *s++ - '0';
   return n;

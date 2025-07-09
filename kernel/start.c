@@ -2,14 +2,14 @@
 #include "riscv.h"
 #include "types.h"
 
-void kmain();
-void timerinit();
+void kmain(void);
+void timerinit(void);
 
 // entry.S needs one stack per CPU.
 char stack0[4096 * NCPU];
 
 // entry.S jumps here in machine mode on stack0.
-void start() {
+void start(void) {
   // set M Previous Privilege mode to Supervisor, for mret.
   unsigned long x = r_mstatus();
   x &= ~MSTATUS_MPP_MASK;
@@ -45,7 +45,7 @@ void start() {
 }
 
 // ask each hart to generate timer interrupts.
-void timerinit() {
+void timerinit(void) {
   // enable supervisor-mode timer interrupts.
   w_mie(r_mie() | MIE_STIE);
 

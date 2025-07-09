@@ -45,10 +45,11 @@ struct log {
   int dev;
   struct logheader lh;
 };
+
 struct log log;
 
 static void recover_from_log(void);
-static void commit();
+static void commit(void);
 
 void initlog(int dev, struct superblock *sb) {
   if (sizeof(struct logheader) >= BSIZE) {
@@ -176,7 +177,7 @@ static void write_log(void) {
   }
 }
 
-static void commit() {
+static void commit(void) {
   if (log.lh.n > 0) {
     write_log();      // Write modified blocks from cache to log
     write_head();     // Write header to disk -- the real commit

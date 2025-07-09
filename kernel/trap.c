@@ -13,8 +13,8 @@ uint ticks;
 extern char trampoline[], uservec[], userret[];
 
 // in kernelvec.S, calls kerneltrap().
-void kernelvec();
-extern int devintr();
+void kernelvec(void);
+extern int devintr(void);
 
 void trapinit(void) { initlock(&tickslock, "time"); }
 
@@ -26,7 +26,6 @@ void trapinithart(void) { w_stvec((uint64)kernelvec); }
 // called from trampoline.S
 //
 void usertrap(void) {
-
   if ((r_sstatus() & SSTATUS_SPP) != 0) {
     panic("usertrap: not from user mode");
   }
@@ -96,7 +95,7 @@ void usertrapret(void) {
 
 // interrupts and exceptions from kernel code go here via kernelvec,
 // on whatever the current kernel stack is.
-void kerneltrap() {
+void kerneltrap(void) {
   uint64 sepc = r_sepc();
   uint64 sstatus = r_sstatus();
   uint64 scause = r_scause();

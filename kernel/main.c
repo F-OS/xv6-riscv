@@ -13,7 +13,7 @@
 static volatile bool started = false;
 
 // start() jumps here in supervisor mode on all CPUs.
-void kmain() {
+void kmain(void) {
   if (cpuid() == 0) {
     consoleinit();
     printfinit();

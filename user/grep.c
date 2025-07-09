@@ -7,14 +7,14 @@ char buf[1024];
 int match(char *, char *);
 
 void grep(char *pattern, int fd) {
-  int n, m;
-  char *p, *q;
+  int n;
+  char *q;
 
-  m = 0;
+  int m = 0;
   while ((n = read(fd, buf + m, sizeof(buf) - m - 1)) > 0) {
     m += n;
     buf[m] = '\0';
-    p = buf;
+    char *p = buf;
     while ((q = strchr(p, '\n')) != 0) {
       *q = 0;
       if (match(pattern, p)) {
@@ -31,21 +31,20 @@ void grep(char *pattern, int fd) {
 }
 
 int main(int argc, char *argv[]) {
-  int fd, i;
-  char *pattern;
+  int fd;
 
   if (argc <= 1) {
     fprintf(2, "usage: grep pattern [file ...]\n");
     exit(1);
   }
-  pattern = argv[1];
+  char *pattern = argv[1];
 
   if (argc <= 2) {
     grep(pattern, 0);
     exit(0);
   }
 
-  for (i = 2; i < argc; i++) {
+  for (int i = 2; i < argc; i++) {
     if ((fd = open(argv[i], O_RDONLY)) < 0) {
       printf("grep: cannot open %s\n", argv[i]);
       exit(1);

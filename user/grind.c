@@ -17,12 +17,11 @@ int do_rand(unsigned long *ctx) {
    * Park and Miller, Communications of the ACM, vol. 31, no. 10,
    * October 1988, p. 1195.
    */
-  long hi, lo, x;
 
   /* Transform to [1, 0x7ffffffe] range. */
-  x = (*ctx % 0x7ffffffe) + 1;
-  hi = x / 127773;
-  lo = x % 127773;
+  long x = (*ctx % 0x7ffffffe) + 1;
+  long hi = x / 127773;
+  long lo = x % 127773;
   x = 16807 * lo - 2836 * hi;
   if (x < 0)
     x += 0x7fffffff;
@@ -202,7 +201,7 @@ void go(int which_child) {
         exit(1);
       }
       if (st.ino > 200) {
-        printf("grind: fstat reports crazy i-number %d\n", st.ino);
+        printf("grind: fstat reports crazy i-number %u\n", st.ino);
         exit(1);
       }
       close(fd1);
@@ -280,7 +279,7 @@ void go(int which_child) {
   }
 }
 
-void iter() {
+void iter(void) {
   unlink("a");
   unlink("b");
 
@@ -318,7 +317,7 @@ void iter() {
   exit(0);
 }
 
-int main() {
+int main(void) {
   while (1) {
     int pid = fork();
     if (pid == 0) {

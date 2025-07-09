@@ -59,7 +59,6 @@ static struct disk {
   struct virtio_blk_req ops[NUM];
 
   struct spinlock vdisk_lock;
-
 } disk;
 
 void virtio_disk_init(void) {
@@ -160,7 +159,7 @@ void virtio_disk_init(void) {
 }
 
 // find a free descriptor, mark it non-free, return its index.
-static int alloc_desc() {
+static int alloc_desc(void) {
   for (int i = 0; i < NUM; i++) {
     if (disk.free[i]) {
       disk.free[i] = false;
@@ -294,7 +293,7 @@ void virtio_disk_rw(struct buf *b, int write) {
   release(&disk.vdisk_lock);
 }
 
-void virtio_disk_intr() {
+void virtio_disk_intr(void) {
   acquire(&disk.vdisk_lock);
 
   // the device won't raise another interrupt until we tell it

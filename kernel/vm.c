@@ -54,7 +54,7 @@ void kvminit(void) { kernel_pagetable = kvmmake(); }
 
 // Switch h/w page table register to the kernel's page table,
 // and enable paging.
-void kvminithart() {
+void kvminithart(void) {
   // wait for any previous writes to the page table memory to finish.
   sfence_vma();
 
@@ -203,7 +203,7 @@ void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, bool do_free) {
 
 // create an empty user page table.
 // returns 0 if out of memory.
-pagetable_t uvmcreate() {
+pagetable_t uvmcreate(void) {
   pagetable_t pagetable = NULL;
   pagetable = (pagetable_t)kalloc();
   if (pagetable == 0) {

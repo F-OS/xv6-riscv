@@ -71,7 +71,7 @@ static uint balloc(uint dev) {
     for (bi = 0; bi < BPB && b + bi < sb.size; bi++) {
       m = 1 << (bi % 8);
       if ((bp->data[bi / 8] & m) == 0) { // Is block free?
-        bp->data[bi / 8] |= m;           // Mark block in use.
+        bp->data[bi / 8] |= m; // Mark block in use.
         log_write(bp);
         brelse(bp);
         bzero(dev, b + bi);
@@ -175,7 +175,7 @@ struct {
   struct inode inode[NINODE];
 } itable;
 
-void iinit() {
+void iinit(void) {
   int i = 0;
 
   initlock(&itable.lock, "itable");

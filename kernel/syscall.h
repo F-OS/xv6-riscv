@@ -31,7 +31,7 @@ void argaddr(int n, uint64 *ip);
 int argstr(int n, char *buf, int max);
 int fetchstr(uint64 addr, char *buf, int max);
 int fetchaddr(uint64 addr, uint64 *ip);
-void syscall();
+void syscall(void);
 #endif
 
 #endif // KERNEL_SYSCALL_H

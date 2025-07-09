@@ -65,7 +65,7 @@ void procinit(void) {
 // Must be called with interrupts disabled,
 // to prevent race with process being moved
 // to a different CPU.
-int cpuid() {
+int cpuid(void) {
   int id = r_tp();
   return id;
 }
@@ -87,7 +87,7 @@ struct proc *myproc(void) {
   return p;
 }
 
-int allocpid() {
+int allocpid(void) {
   int pid = 0;
 
   acquire(&pid_lock);

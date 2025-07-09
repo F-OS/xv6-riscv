@@ -129,7 +129,7 @@ int killed(struct proc *p);
 void setkilled(struct proc *p);
 struct cpu *mycpu(void);
 struct cpu *getmycpu(void);
-struct proc *myproc();
+struct proc *myproc(void);
 void procinit(void);
 void scheduler(void) __attribute__((noreturn));
 void sched(void);

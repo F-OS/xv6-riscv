@@ -21,9 +21,9 @@ static Header base;
 static Header *freep;
 
 void free(void *ap) {
-  Header *bp, *p;
+  Header *p;
 
-  bp = (Header *)ap - 1;
+  Header *bp = (Header *)ap - 1;
   for (p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
     if (p >= p->s.ptr && (bp > p || bp < p->s.ptr))
       break;
@@ -41,30 +41,26 @@ void free(void *ap) {
 }
 
 static Header *morecore(uint nu) {
-  char *p;
-  Header *hp;
-
   if (nu < 4096)
     nu = 4096;
-  p = sbrk(nu * sizeof(Header));
+  char *p = sbrk(nu * sizeof(Header));
   if (p == (char *)-1)
     return 0;
-  hp = (Header *)p;
+  Header *hp = (Header *)p;
   hp->s.size = nu;
   free((void *)(hp + 1));
   return freep;
 }
 
 void *malloc(uint nbytes) {
-  Header *p, *prevp;
-  uint nunits;
+  Header *prevp;
 
-  nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
+  uint nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
   if ((prevp = freep) == 0) {
     base.s.ptr = freep = prevp = &base;
     base.s.size = 0;
   }
-  for (p = prevp->s.ptr;; prevp = p, p = p->s.ptr) {
+  for (Header *p = prevp->s.ptr;; prevp = p, p = p->s.ptr) {
     if (p->s.size >= nunits) {
       if (p->s.size == nunits)
         prevp->s.ptr = p->s.ptr;
