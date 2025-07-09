@@ -414,21 +414,21 @@ int copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len) {
 // Copy bytes to dst from virtual address srcva in a given page table,
 // until a '\0', or max.
 // Return 0 on success, -1 on error.
-int copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max) {
+int copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len) {
   uint64 n = 0;
   uint64 va0 = 0;
   uint64 pa0 = 0;
   bool got_null = false;
 
-  while (got_null == false && max > 0) {
+  while (got_null == false && len > 0) {
     va0 = PGROUNDDOWN(srcva);
     pa0 = walkaddr(pagetable, va0);
     if (pa0 == 0) {
       return -1;
     }
     n = PGSIZE - (srcva - va0);
-    if (n > max) {
-      n = max;
+    if (n > len) {
+      n = len;
     }
 
     char *p = (char *)(pa0 + (srcva - va0));
@@ -441,7 +441,7 @@ int copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max) {
       *dst = *p;
 
       --n;
-      --max;
+      --len;
       p++;
       dst++;
     }

@@ -18,7 +18,7 @@ static struct {
 
 static char digits[] = "0123456789abcdef";
 
-static void printint(long long xx, int base, int sign) {
+static void printint(long long xx, uint base, int sign) {
   char buf[16];
   int i = 0;
   unsigned long long x = 0;
@@ -44,10 +44,9 @@ static void printint(long long xx, int base, int sign) {
 }
 
 static void printptr(uint64 x) {
-  uint i = 0;
   consputc('0');
   consputc('x');
-  for (i = 0; i < (sizeof(uint64) * 2); i++, x <<= 4) {
+  for (uint i = 0; i < (sizeof(uint64) * 2); i++, x <<= 4) {
     consputc(digits[x >> (sizeof(uint64) * 8 - 4)]);
   }
 }

@@ -75,12 +75,12 @@ void ilock(struct inode *ip);
 void iput(struct inode *ip);
 void iunlock(struct inode *ip);
 void iunlockput(struct inode *ip);
-void iupdate(struct inode *ip);
+void iupdate(const struct inode *ip);
 int namecmp(const char *s, const char *t);
 struct inode *namei(const char *path);
 struct inode *nameiparent(const char *path, char *name);
 uint readi(struct inode *ip, int user_dst, uint64 dst, uint off, uint n);
-void stati(struct inode *ip, struct stat *st);
+void stati(const struct inode *ip, struct stat *st);
 uint writei(struct inode *ip, int user_src, uint64 src, uint off, uint n);
 void itrunc(struct inode *ip);
 

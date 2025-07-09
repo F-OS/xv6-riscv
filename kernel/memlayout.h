@@ -23,15 +23,15 @@
 // PHYSTOP -- end RAM used by the kernel
 
 // qemu puts UART registers here in physical memory.
-#define UART0 0x10000000L
+#define UART0 0x10000000ULL
 #define UART0_IRQ 10
 
 // virtio mmio interface
-#define VIRTIO0 0x10001000
+#define VIRTIO0 0x10001000ULL
 #define VIRTIO0_IRQ 1
 
 // qemu puts platform-level interrupt controller (PLIC) here.
-#define PLIC 0x0c000000L
+#define PLIC 0x0c000000ULL
 #define PLIC_PRIORITY (PLIC + 0x0)
 #define PLIC_PENDING (PLIC + 0x1000)
 #define PLIC_SENABLE(hart) (PLIC + 0x2080 + (hart) * 0x100)
@@ -41,8 +41,8 @@
 // the kernel expects there to be RAM
 // for use by the kernel and user pages
 // from physical address 0x80000000 to PHYSTOP.
-#define KERNBASE 0x80000000L
-#define PHYSTOP (KERNBASE + 128 * 1024 * 1024)
+#define KERNBASE 0x80000000ULL
+#define PHYSTOP (KERNBASE + 512 * 1024 * 1024)
 
 // map the trampoline page to the highest address,
 // in both user and kernel space.

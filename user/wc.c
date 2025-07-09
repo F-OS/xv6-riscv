@@ -3,7 +3,7 @@
 
 char buf[512];
 
-void wc(int fd, char *name) {
+void wc(int fd, const char* name) {
   int n;
   int w, c;
 

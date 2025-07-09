@@ -14,11 +14,11 @@ static inline uint64 r_mhartid(void) {
 
 // Machine Status Register, mstatus
 
-#define MSTATUS_MPP_MASK (3L << 11) // previous mode.
-#define MSTATUS_MPP_M (3L << 11)
-#define MSTATUS_MPP_S (1L << 11)
-#define MSTATUS_MPP_U (0L << 11)
-#define MSTATUS_MIE (1L << 3) // machine-mode interrupt enable.
+#define MSTATUS_MPP_MASK (3ULL << 11) // previous mode.
+#define MSTATUS_MPP_M (3ULL << 11)
+#define MSTATUS_MPP_S (1ULL << 11)
+#define MSTATUS_MPP_U (0ULL << 11)
+#define MSTATUS_MIE (1ULL << 3) // machine-mode interrupt enable.
 
 static inline uint64 r_mstatus(void) {
   uint64 x = 0;
@@ -39,11 +39,11 @@ static inline void w_mepc(uint64 x) {
 
 // Supervisor Status Register, sstatus
 
-#define SSTATUS_SPP (1L << 8)  // Previous mode, 1=Supervisor, 0=User
-#define SSTATUS_SPIE (1L << 5) // Supervisor Previous Interrupt Enable
-#define SSTATUS_UPIE (1L << 4) // User Previous Interrupt Enable
-#define SSTATUS_SIE (1L << 1)  // Supervisor Interrupt Enable
-#define SSTATUS_UIE (1L << 0)  // User Interrupt Enable
+#define SSTATUS_SPP (1ULL << 8)  // Previous mode, 1=Supervisor, 0=User
+#define SSTATUS_SPIE (1ULL << 5) // Supervisor Previous Interrupt Enable
+#define SSTATUS_UPIE (1ULL << 4) // User Previous Interrupt Enable
+#define SSTATUS_SIE (1ULL << 1)  // Supervisor Interrupt Enable
+#define SSTATUS_UIE (1ULL << 0)  // User Interrupt Enable
 
 static inline uint64 r_sstatus(void) {
   uint64 x = 0;
@@ -65,9 +65,9 @@ static inline uint64 r_sip(void) {
 static inline void w_sip(uint64 x) { asm volatile("csrw sip, %0" : : "r"(x)); }
 
 // Supervisor Interrupt Enable
-#define SIE_SEIE (1L << 9) // external
-#define SIE_STIE (1L << 5) // timer
-#define SIE_SSIE (1L << 1) // software
+#define SIE_SEIE (1ULL << 9) // external
+#define SIE_STIE (1ULL << 5) // timer
+#define SIE_SSIE (1ULL << 1) // software
 
 static inline uint64 r_sie(void) {
   uint64 x = 0;
@@ -78,7 +78,7 @@ static inline uint64 r_sie(void) {
 static inline void w_sie(uint64 x) { asm volatile("csrw sie, %0" : : "r"(x)); }
 
 // Machine-mode Interrupt Enable
-#define MIE_STIE (1L << 5) // supervisor timer
+#define MIE_STIE (1ULL << 5) // supervisor timer
 
 static inline uint64 r_mie(void) {
   uint64 x = 0;
@@ -171,7 +171,7 @@ static inline void w_pmpaddr0(uint64 x) {
 }
 
 // use riscv's sv39 page table scheme.
-#define SATP_SV39 (8L << 60)
+#define SATP_SV39 (8ULL << 60)
 
 #define MAKE_SATP(pagetable) (SATP_SV39 | (((uint64)(pagetable)) >> 12))
 
@@ -270,11 +270,11 @@ typedef uint64 *pagetable_t; // 512 PTEs
 #define PGROUNDUP(sz) (((sz) + PGSIZE - 1) & ~(PGSIZE - 1))
 #define PGROUNDDOWN(a) (((a)) & ~(PGSIZE - 1))
 
-#define PTE_V (1L << 0) // valid
-#define PTE_R (1L << 1)
-#define PTE_W (1L << 2)
-#define PTE_X (1L << 3)
-#define PTE_U (1L << 4) // user can access
+#define PTE_V (1ULL << 0) // valid
+#define PTE_R (1ULL << 1)
+#define PTE_W (1ULL << 2)
+#define PTE_X (1ULL << 3)
+#define PTE_U (1ULL << 4) // user can access
 
 // shift a physical address to the right place for a PTE.
 #define PA2PTE(pa) ((((uint64)(pa)) >> 12) << 10)
@@ -292,5 +292,5 @@ typedef uint64 *pagetable_t; // 512 PTEs
 // MAXVA is actually one bit less than the max allowed by
 // Sv39, to avoid having to sign-extend virtual addresses
 // that have the high bit set.
-#define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
+#define MAXVA (1ULL << (9 + 9 + 9 + 12 - 1))
 #endif // KERNEL_RISCV_H

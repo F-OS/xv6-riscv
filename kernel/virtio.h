@@ -54,7 +54,7 @@
 
 // this many virtio descriptors.
 // must be a power of two.
-#define NUM 8
+#define NUM 16
 
 // a single descriptor, from the spec.
 struct virtq_desc {

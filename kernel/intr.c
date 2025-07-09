@@ -16,7 +16,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
   (void)sstatus;
   if (is_kernel) {
     // kernel trap handling
-    if (scause == 0x8000000000000009L) {
+    if (scause == 0x8000000000000009ULL) {
       // PLIC
       int irq = plic_claim();
       if (irq == UART0_IRQ) {
@@ -29,7 +29,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       if (irq) {
         plic_complete(irq);
       }
-    } else if (scause == 0x8000000000000005L) {
+    } else if (scause == 0x8000000000000005ULL) {
       // timer interrupt
       if (cpuid() == 0) {
         acquire(&tickslock);
@@ -40,7 +40,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       w_stimecmp(r_time() + 100000);
       *do_yield = true;
     } else {
-      printf("kerneltrap(): unexpected scause 0x%lx\n", scause);
+      printf("kerneltrap(): unexpected scause 0x%llx\n", scause);
     }
   } else {
     // user trap handling
@@ -59,7 +59,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       // so enable only now that we're done with those registers.
       intr_on();
       syscall();
-    } else if (scause == 0x8000000000000009L) {
+    } else if (scause == 0x8000000000000009ULL) {
       // PLIC
       int irq = plic_claim();
       if (irq == UART0_IRQ) {
@@ -72,7 +72,7 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       if (irq) {
         plic_complete(irq);
       }
-    } else if (scause == 0x8000000000000005L) {
+    } else if (scause == 0x8000000000000005ULL) {
       if (cpuid() == 0) {
         acquire(&tickslock);
         ticks++;
@@ -86,8 +86,8 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       w_stimecmp(r_time() + 100000);
       *do_yield = true;
     } else {
-      printf("usertrap(): unexpected scause 0x%lx pid=%d\n", scause, p->pid);
-      printf("            sepc=0x%lx stval=0x%lx\n", sepc, r_stval());
+      printf("usertrap(): unexpected scause 0x%llx pid=%d\n", scause, p->pid);
+      printf("            sepc=0x%llx stval=0x%llx\n", sepc, r_stval());
       setkilled(p);
     }
     if (killed(p)) {

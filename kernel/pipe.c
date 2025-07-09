@@ -18,13 +18,10 @@ struct pipe {
 
 int pipealloc(struct file **f0, struct file **f1) {
   struct pipe *pi = NULL;
-
-  pi = 0;
-  *f0 = *f1 = 0;
-  if ((*f0 = filealloc()) == 0 || (*f1 = filealloc()) == 0) {
-    goto bad;
-  }
-  if ((pi = (struct pipe *)kalloc()) == 0) {
+  *f0 = filealloc();
+  *f1 = filealloc();
+  pi = (struct pipe *)kalloc();
+  if (*f0 == 0 || *f1 == 0 || pi == 0) {
     goto bad;
   }
   pi->readopen = true;

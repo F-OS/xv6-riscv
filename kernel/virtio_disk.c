@@ -23,24 +23,24 @@
 // the address of virtio mmio register r.
 #define R(r) ((volatile uint32 *)(VIRTIO0 + (r)))
 
-static struct disk {
+typedef struct {
   // a set (not a ring) of DMA descriptors, with which the
   // driver tells the device where to read and write individual
   // disk operations. there are NUM descriptors.
   // most commands consist of a "chain" (a linked list) of a couple of
   // these descriptors.
-  struct virtq_desc *desc;
+  struct virtq_desc desc[NUM];
 
   // a ring in which the driver writes descriptor numbers
   // that the driver would like the device to process.  it only
   // includes the head descriptor of each chain. the ring has
   // NUM elements.
-  struct virtq_avail *avail;
+  struct virtq_avail avail[NUM];
 
   // a ring in which the device writes descriptor numbers that
   // the device has finished processing (just the head of each chain).
   // there are NUM used ring entries.
-  struct virtq_used *used;
+  struct virtq_used used[NUM];
 
   // our own book-keeping.
   bool free[NUM];  // is a descriptor free?
@@ -59,7 +59,9 @@ static struct disk {
   struct virtio_blk_req ops[NUM];
 
   struct spinlock vdisk_lock;
-} disk;
+} disk_t;
+
+static disk_t disk;
 
 void virtio_disk_init(void) {
   uint32 status = 0;
@@ -120,17 +122,6 @@ void virtio_disk_init(void) {
   if (max < NUM) {
     panic("virtio disk max queue too short");
   }
-
-  // allocate and zero queue memory.
-  disk.desc = kalloc();
-  disk.avail = kalloc();
-  disk.used = kalloc();
-  if (!disk.desc || !disk.avail || !disk.used) {
-    panic("virtio disk kalloc");
-  }
-  memset(disk.desc, 0, PGSIZE);
-  memset(disk.avail, 0, PGSIZE);
-  memset(disk.used, 0, PGSIZE);
 
   // set queue size.
   *R(VIRTIO_MMIO_QUEUE_NUM) = NUM;

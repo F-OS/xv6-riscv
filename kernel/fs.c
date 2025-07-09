@@ -1,4 +1,7 @@
-// File system implementation.  Five layers:
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java:
+// https://pvs-studio.com File system implementation.  Five layers:
 //   + Blocks: allocator for raw disk blocks.
 //   + Log: crash recovery for multi-step updates.
 //   + Files: inode allocator, reading, writing, metadata.
@@ -32,7 +35,7 @@ static void readsb(int dev, struct superblock *sblock) {
   struct buf *bp = NULL;
 
   bp = bread(dev, 1);
-  memmove(sblock, bp->data, sizeof(*sblock));
+  memmove(sblock, bp->data, sizeof(struct superblock));
   brelse(bp);
 }
 
@@ -71,7 +74,7 @@ static uint balloc(uint dev) {
     for (bi = 0; bi < BPB && b + bi < sb.size; bi++) {
       m = 1 << (bi % 8);
       if ((bp->data[bi / 8] & m) == 0) { // Is block free?
-        bp->data[bi / 8] |= m; // Mark block in use.
+        bp->data[bi / 8] |= m;           // Mark block in use.
         log_write(bp);
         brelse(bp);
         bzero(dev, b + bi);
@@ -215,7 +218,7 @@ struct inode *ialloc(uint dev, short type) {
 // Must be called after every change to an ip->xxx field
 // that lives on disk.
 // Caller must hold ip->lock.
-void iupdate(struct inode *ip) {
+void iupdate(const struct inode *ip) {
   struct buf *bp = NULL;
   struct dinode *dip = NULL;
 
@@ -440,7 +443,7 @@ void itrunc(struct inode *ip) {
 
 // Copy stat information from inode.
 // Caller must hold ip->lock.
-void stati(struct inode *ip, struct stat *st) {
+void stati(const struct inode *ip, struct stat *st) {
   st->dev = ip->dev;
   st->ino = ip->inum;
   st->type = ip->type;

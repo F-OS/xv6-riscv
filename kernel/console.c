@@ -49,7 +49,7 @@ struct {
 // user write()s to the console go here.
 //
 int consolewrite(int user_src, uint64 src, uint n) {
-  uint i = 0;
+  uint i;
 
   for (i = 0; i < n; i++) {
     char c = 0;
@@ -69,11 +69,10 @@ int consolewrite(int user_src, uint64 src, uint n) {
 // or kernel address.
 //
 int consoleread(int user_dst, uint64 dst, uint n) {
-  uint target = 0;
+  uint target = n;
   int c = 0;
   char cbuf = 0;
 
-  target = n;
   acquire(&cons.lock);
   while (n > 0) {
     // wait until interrupt handler has put some
