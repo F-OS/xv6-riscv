@@ -13,7 +13,7 @@
 #include "types.h"
 #include "vm.h"
 
-struct cpu cpus[NCPU];
+struct cpu cpus[NCPU + 1];
 
 struct proc proc[NPROC];
 
@@ -60,6 +60,10 @@ void procinit(void) {
     p->state = UNUSED;
     p->kstack = KSTACK((int)(p - proc));
   }
+  int id = cpuid();
+  // only the boot hart runs procinit()
+  // wanted to write hartid but less compatible
+  cpus[id].isboothart = 1;
 }
 
 // Must be called with interrupts disabled,

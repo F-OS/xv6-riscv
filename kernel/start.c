@@ -56,5 +56,5 @@ void timerinit(void) {
   w_mcounteren(r_mcounteren() | 2);
 
   // ask for the very first timer interrupt.
-  w_stimecmp(r_time() + 1000000);
+  w_stimecmp(r_time() + 100000);
 }

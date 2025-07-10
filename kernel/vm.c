@@ -61,6 +61,7 @@ void kvminithart(void) {
   w_satp(MAKE_SATP(kernel_pagetable));
 
   // flush stale entries from the TLB.
+  asm volatile("fence iorw,iorw");
   sfence_vma();
 }
 
@@ -124,7 +125,7 @@ uint64 walkaddr(pagetable_t pagetable, uint64 va) {
 // add a mapping to the kernel page table.
 // only used when booting.
 // does not flush TLB or enable paging.
-void kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
+void kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, uint64 perm) {
   if (mappages(kpgtbl, va, sz, pa, perm) != 0) {
     panic("kvmmap");
   }
@@ -162,13 +163,14 @@ int mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa,
     if (*pte & PTE_V) {
       panic("mappages: remap");
     }
-    *pte = PA2PTE(pa) | perm | PTE_V;
+    *pte = PA2PTE(pa) | perm | PTE_V | PTE_A | PTE_D;
     if (a == last) {
       break;
     }
     a += PGSIZE;
     pa += PGSIZE;
   }
+  sfence_vma();
   return 0;
 }
 
@@ -199,6 +201,7 @@ void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, bool do_free) {
     }
     *pte = 0;
   }
+  sfence_vma();
 }
 
 // create an empty user page table.
@@ -310,7 +313,7 @@ int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) {
   pte_t *pte = NULL;
   uint64 pa = 0;
   uint64 i = 0;
-  uint flags = 0;
+  uint64 flags = 0;
   char *mem = NULL;
 
   for (i = 0; i < sz; i += PGSIZE) {
@@ -331,6 +334,7 @@ int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) {
       goto err;
     }
   }
+  asm volatile("fence iorw,iorw");
   return 0;
 
 err:

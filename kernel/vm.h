@@ -5,7 +5,7 @@
 
 void kvminit(void);
 void kvminithart(void);
-void kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm);
+void kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, uint64 perm);
 int mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa,
              int perm);
 pagetable_t uvmcreate(void);

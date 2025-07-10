@@ -31,7 +31,8 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       }
     } else if (scause == 0x8000000000000005ULL) {
       // timer interrupt
-      if (cpuid() == 0) {
+      struct cpu* c = mycpu();
+      if (c->isboothart){
         acquire(&tickslock);
         ticks++;
         wakeup(&ticks);
@@ -73,7 +74,8 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
         plic_complete(irq);
       }
     } else if (scause == 0x8000000000000005ULL) {
-      if (cpuid() == 0) {
+      struct cpu* c = mycpu();
+      if (c->isboothart){
         acquire(&tickslock);
         ticks++;
         wakeup(&ticks);
