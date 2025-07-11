@@ -1,4 +1,5 @@
 #include "intr.h"
+#include "kernel/sbi.h"
 #include "memlayout.h"
 #include "plic.h"
 #include "printf.h"
@@ -30,18 +31,37 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
         plic_complete(irq);
       }
     } else if (scause == 0x8000000000000005ULL) {
-      // timer interrupt
-      struct cpu* c = mycpu();
-      if (c->isboothart){
+      timer_set();
+      *do_yield = true;
+      // timer
+      struct cpu *c = mycpu();
+      if (c->isboothart) {
         acquire(&tickslock);
         ticks++;
         wakeup(&ticks);
         release(&tickslock);
       }
-      w_stimecmp(r_time() + 100000);
-      *do_yield = true;
     } else {
-      printf("kerneltrap(): unexpected scause 0x%llx\n", scause);
+      printf("================================ KERNEL TRAP "
+             "================================\n");
+      printf("kerneltrap(): unexpected scause 0x%llx, was called from "
+             "sepc=0x%llx, with sstatus=0x%llx\n",
+             scause, sepc, sstatus);
+      printf("            kernel_hartid=0x%llx\n", cpuid());
+      printf("            kernel_pagetable=0x%llx\n", r_satp());
+      printf("            kernel stack pointer=0x%llx\n", r_sp());
+      printf("            kernel trapframe=0x%llx\n",
+             (uint64)myproc()->trapframe);
+      printf("            kernel process pid=%d\n", myproc()->pid);
+      printf("            kernel process name=%s\n", myproc()->name);
+      printf("            kernel process state=%d\n", myproc()->state);
+      printf("            kernel process kstack=0x%llx\n", myproc()->kstack);
+      printf("            kernel process pagetable=0x%llx\n",
+             myproc()->pagetable);
+      printf("            kernel process sz=0x%llx\n", myproc()->sz);
+      while (1) {
+        ;
+      }
     }
   } else {
     // user trap handling
@@ -74,19 +94,16 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
         plic_complete(irq);
       }
     } else if (scause == 0x8000000000000005ULL) {
-      struct cpu* c = mycpu();
-      if (c->isboothart){
+      timer_set();
+      *do_yield = true;
+      // timer
+      struct cpu *c = mycpu();
+      if (c->isboothart) {
         acquire(&tickslock);
         ticks++;
         wakeup(&ticks);
         release(&tickslock);
       }
-
-      // ask for the next timer interrupt. this also clears
-      // the interrupt request. 1000000 is about a tenth
-      // of a second.
-      w_stimecmp(r_time() + 100000);
-      *do_yield = true;
     } else {
       printf("usertrap(): unexpected scause 0x%llx pid=%d\n", scause, p->pid);
       printf("            sepc=0x%llx stval=0x%llx\n", sepc, r_stval());
@@ -97,3 +114,19 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
     }
   }
 }
+
+/*
+ else if (scause == 0x8000000000000005ULL) {
+      // timer interrupt
+      struct cpu *c = mycpu();
+      if (c->isboothart) {
+        acquire(&tickslock);
+        ticks++;
+        wakeup(&ticks);
+        release(&tickslock);
+      }
+      w_stimecmp(r_time() + 100000);
+      *do_yield = true;
+    }
+
+*/

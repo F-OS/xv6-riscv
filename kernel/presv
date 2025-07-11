@@ -1,0 +1,167 @@
+struct proctbl *proctbl_head;
+struct proctbl *proctbl_free;
+struct spinlock proctbl_lock;
+int table_count = 0;
+// Find a free process structure in the process table.
+
+char *itoa(int num, char *str, int base) {
+  char *ptr = str;
+  int i = 0;
+  if (num < 0 && base == 10) {
+    *ptr++ = '-';
+    num = -num;
+    i++;
+  }
+  do {
+    int digit = num % base;
+    *ptr++ = (digit < 10) ? '0' + digit : 'a' + (digit - 10);
+    num /= base;
+    i++;
+  } while (num > 0);
+  *ptr-- = '\0';
+  // Reverse the string
+  for (int j = i / 2; j >= 0; j--) {
+    char temp = str[j];
+    str[j] = str[i - j];
+    str[i - j] = temp;
+  }
+  return str;
+}
+
+struct proc *find_free_proc_in_tbl(void) {
+  struct proctbl *tbl = proctbl_free;
+  struct proc *p = NULL;
+  // printf("find_free_proc_in_tbl: looking for free process in process
+  // table\n");
+  acquire(&proctbl_lock);
+
+get_free:
+  while (tbl) {
+    acquire(&tbl->lock);
+    struct proc *procs = tbl->tbl;
+    printf("find_free_proc_in_tbl: checking process table %p\n", tbl);
+    if (tbl->used < tbl->size) {
+      printf("find_free_proc_in_tbl: table %p has %d used, %d size\n", tbl,
+             tbl->used, tbl->size);
+      for (int i = 0; i < tbl->size; i++) {
+        p = &procs[i];
+        printf("find_free_proc_in_tbl: checking process %p, state %d\n", p,
+               p->state);
+        acquire(&p->lock);
+        if (p->state == UNUSED) {
+          tbl->used++;
+          printf("find_free_proc_in_tbl: found free process %p\n", p);
+          release(&tbl->lock);
+          release(&p->lock);
+          release(&proctbl_lock);
+          return p;
+        }
+        release(&p->lock);
+      }
+    }
+    release(&tbl->lock);
+    if (tbl->next != NULL) {
+      tbl = tbl->next;
+    } else {
+      break;
+    }
+  }
+
+  if (tbl == proctbl_free) {
+    // Scan from the front instead.
+    tbl = proctbl_head;
+    goto get_free;
+  }
+
+  // If we reach here, it means we didn't find a free process in the current
+  // process table. We need to allocate a new process table if we can.
+  tbl->next = kalloc();
+  if (tbl->next == NULL) {
+    panic("find_free_proc: kalloc failed for new process table");
+  }
+  tbl = tbl->next;
+  memset(tbl, 0, sizeof(struct proctbl));
+  tbl->size = TBL_SIZE; // Set the size of the new process table
+  tbl->used = 0;        // Initialize used count to 0
+  table_count++;
+  for (int i = 0; i < TBL_SIZE; i++) {
+    struct proc *p = &tbl->tbl[i];
+    initlock(&p->lock, "proc");
+    p->state = UNUSED; // Initialize all processes to UNUSED state
+  }
+  tbl->next = NULL; // Set the next pointer to NULL for the new table
+  char tbl_number[16];
+  // convert table_count to string
+  int tbl_numb = table_count;
+  itoa(tbl_numb, tbl_number, 10);
+  // Initialize the process table name
+  char tbl_name[32] = "proctbl_";
+  strcat(tbl_name, tbl_number);
+
+  initlock(&tbl->lock,
+           tbl_name); // Initialize the lock for the new process table
+  proctbl_free = tbl;
+  release(&proctbl_lock);
+
+  // Return the first free process in the new process table
+  tbl->used++;
+  return &tbl->tbl[0];
+}
+
+// Free a process in the process table.
+void free_proc_in_tbl(struct proc *p) {
+  struct proctbl *tbl = proctbl_head;
+  if (p == NULL) {
+    return;
+  }
+  acquire(&proctbl_lock);
+
+  // Acquire the lock for the process table
+  // Find the process table that contains the process
+  while (tbl) {
+    acquire(&tbl->lock);
+    struct proc *procs = tbl->tbl;
+    for (int i = 0; i < tbl->size; i++) {
+      if (&procs[i] == p) {
+        // Found the process, free it
+        tbl->used--;
+        p->state = UNUSED; // Set the process state to UNUSED
+
+        if (tbl->used == 0) {
+          proctbl_free = tbl;
+        }
+        release(&proctbl_lock);
+        release(&tbl->lock);
+        return;
+      }
+      if (tbl->next != NULL) {
+        tbl = tbl->next;
+      } else {
+        break;
+      }
+    }
+    release(&tbl->lock);
+  }
+
+  panic("free_proc_in_tbl: process not found in any process table");
+}
+// Initialize the process table.
+void proc_tbl_init(void) {
+  proctbl_head = kalloc();
+  if (proctbl_head == NULL) {
+    panic("proc_tbl_init: kalloc failed for process table head");
+  }
+  memset(proctbl_head, 0, sizeof(struct proctbl));
+  proctbl_head->size = TBL_SIZE; // Set the size of the process
+  proctbl_head->used = 0;        // Initialize used count to 0
+  initlock(&proctbl_head->lock, "proctbl_top_lock");
+  proctbl_free = proctbl_head; // Set the free process table to the head
+  for (int i = 0; i < TBL_SIZE; i++) {
+    struct proc *p = &proctbl_head->tbl[i];
+    initlock(&p->lock, "proc");
+    p->state = UNUSED; // Initialize all processes to UNUSED state
+  }
+  initlock(&proctbl_lock, "proctbl_lock");
+  proctbl_head->next = NULL; // Initialize the next pointer to NULL
+  table_count = 1;           // Initialize the table count to 1
+}

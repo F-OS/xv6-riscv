@@ -11,5 +11,7 @@ int strncmp(const char *p, const char *q, uint n);
 char *strncpy(char *s, const char *t, int n);
 int strcmp(const char *p, const char *q);
 char *safestrcpy(char *s, const char *t, int n);
+char *strcpy(char *s, const char *t);
+char *strcat(char *s, const char *t);
 int strlen(const char *s);
 #endif // STRING_H

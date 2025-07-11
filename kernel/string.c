@@ -104,6 +104,16 @@ char *safestrcpy(char *s, const char *t, int n) {
   return os;
 }
 
+char *strcpy(char *s, const char *t) {
+  char *os = NULL;
+
+  os = s;
+  while ((*s++ = *t++) != 0) {
+    ;
+  }
+  return os;
+}
+
 int strlen(const char *s) {
   uint n = 0;
 
@@ -111,4 +121,17 @@ int strlen(const char *s) {
     ;
   }
   return n;
+}
+
+char *strcat(char *s, const char *t) {
+  char *os = NULL;
+
+  os = s;
+  while (*s) {
+    s++;
+  }
+  while ((*s++ = *t++) != 0) {
+    ;
+  }
+  return os;
 }

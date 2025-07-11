@@ -92,6 +92,8 @@ struct trapframe {
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
+// HEY! LISTEN! if you change the size of this struct,
+// change the size of proctbl->tbl too!
 struct proc {
   struct spinlock lock;
 
@@ -114,6 +116,16 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+};
+
+// (HEY! LISTEN! if you change the size of struct proc, change 11 here too! proctbl should fit in a single page)
+#define TBL_SIZE 11
+struct proctbl {
+  int used; // Number of used entries in the process table
+  int size; // Size of the process table
+  struct proc tbl[TBL_SIZE]; // Process table
+  struct proctbl *next; // Next process table
+  struct spinlock lock; // Lock for the process table
 };
 
 void swtch(struct context *, struct context *);

@@ -2,14 +2,16 @@
 #include "riscv.h"
 #include "types.h"
 
-void kmain(void);
+void kmain(uint64 hartid, uint64 fdt);
 void timerinit(void);
-
+#define SBI
 // entry.S needs one stack per CPU.
 char stack0[4096 * NCPU];
 
 // entry.S jumps here in machine mode on stack0.
-void start(void) {
+void start(uint64 hartid, uint64 fdt)
+{
+  #ifndef SBI
   // set M Previous Privilege mode to Supervisor, for mret.
   unsigned long x = r_mstatus();
   x &= ~MSTATUS_MPP_MASK;
@@ -42,6 +44,19 @@ void start(void) {
 
   // switch to supervisor mode and jump to main().
   asm volatile("mret");
+  #else
+  // disable paging for now.
+  w_satp(0);
+  sfence_vma();
+
+  // disable interrupts till sbi is initialized.
+  w_sstatus(r_sstatus() & ~SSTATUS_SIE);
+  // keep each CPU's hartid in its tp register.
+  w_tp(hartid);
+
+  kmain(hartid, fdt);
+
+  #endif
 }
 
 // ask each hart to generate timer interrupts.

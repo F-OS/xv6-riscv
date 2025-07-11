@@ -30,6 +30,7 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o \
   $K/intr.o \
+  $K/sbi.o \
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -61,7 +62,7 @@ OBJDUMP = $(TOOLPREFIX)objdump
 
 CFLAGS = -Wall -Wextra -Wstrict-aliasing=3 -Wwrite-strings -Wvla -Wstringop-overflow=4 -Wno-logical-op-parentheses -Wshadow -fanalyzer -O -fno-omit-frame-pointer -ggdb -gdwarf-2
 CFLAGS += -Wcast-align=strict -fanalyzer
-CFLAGS += -O3 -g -std=gnu2x -fopt-info-missed=dump
+CFLAGS += -Og -g -std=gnu2x -fopt-info-missed=dump
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 
@@ -169,10 +170,10 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 ifndef CPUS
-CPUS := 3
+CPUS := 8
 endif
 
-QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 512M -smp $(CPUS) -nographic
+QEMUOPTS = -machine virt -bios default -kernel $K/kernel -m 512M -smp $(CPUS) -nographic
 QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0

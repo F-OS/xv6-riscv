@@ -3,6 +3,8 @@
 #include "riscv.h"
 #include "types.h"
 
+extern pagetable_t kernel_pagetable;
+
 void kvminit(void);
 void kvminithart(void);
 void kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, uint64 perm);
