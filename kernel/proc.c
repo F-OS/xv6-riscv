@@ -22,6 +22,193 @@ struct proc *initproc;
 int nextpid = 1;
 struct spinlock pid_lock;
 
+enum bitmap_states {
+  BMP_UNMAPPED,
+  BMP_USED,
+  BMP_FREE,
+};
+// Keep free entries below this limit
+#define TRIM_LIMIT_DROP_TO 25
+#define TRIM_LIMIT 40
+int bitmap_nr_free = 0;
+uint8 *userstack_bitmap; // bitmap for user stack pages
+struct spinlock userstack_bitmap_lock;
+#define ENTRY_BITS 2 // two bits per entry in the bitmap
+#define USERSTACK_BITMAP_SIZE                                                  \
+  ((PGSIZE * 8) / ENTRY_BITS) // number of entries in the bitmap
+
+void bitmap_init(void) {
+  userstack_bitmap = (uint8 *)kalloc();
+  if (userstack_bitmap == 0) {
+    panic("bitmap_init: kalloc failed");
+  }
+  memset(userstack_bitmap, 0, PGSIZE);
+  initlock(&userstack_bitmap_lock, "userstack_bitmap_lock");
+}
+
+static inline void userstack_bitmap_set(uint8 *bmp, uint64 idx,
+                                        enum bitmap_states v) {
+  if (idx >= USERSTACK_BITMAP_SIZE || v > BMP_FREE || v < BMP_UNMAPPED) {
+    panic("userstack_bitmap_set: invalid index or value");
+  }
+  uint64 bit_pos = idx * ENTRY_BITS;
+  uint64 byte = bit_pos >> 3;        // divide by 8
+  uint64 off = bit_pos & 7;          // mod 8
+  uint8 mask = (0x3u << off);        // two bits mask
+  bmp[byte] = (bmp[byte] & ~mask)    // clear those two bits
+              | ((v & 0x3u) << off); // set them to v
+}
+
+static inline enum bitmap_states userstack_bitmap_get(uint8 *bmp, uint64 idx) {
+  if (idx >= USERSTACK_BITMAP_SIZE) {
+    panic("userstack_bitmap_get: invalid index");
+  }
+  uint64 bit_pos = idx * ENTRY_BITS;
+  uint64 byte = bit_pos >> 3;       // divide by 8
+  uint64 off = bit_pos & 7;         // mod 8
+  uint8 mask = (0x3u << off);       // two bits mask
+  return (bmp[byte] & mask) >> off; // return the two bits as an enum
+}
+
+uint64 alloc_userstack_page(int i) {
+  char *pa = kalloc();
+  if (pa == 0) {
+    panic("kalloc");
+  }
+  uint64 va = KSTACK(i);
+  if (mappages(kernel_pagetable, va, PGSIZE, (uint64)pa, PTE_R | PTE_W) < 0) {
+    panic("mappages");
+  }
+  return va;
+}
+
+uint64 dealloc_userstack_page(int i) {
+  uint64 va = KSTACK(i);
+  pte_t *pte = walk(kernel_pagetable, va, 0);
+  if (pte == 0 || (*pte & PTE_V) == 0) {
+    panic("dealloc_userstack_page: no mapping");
+  }
+  uint64 pa = PTE2PA(*pte);
+  uvmunmap(kernel_pagetable, va, 1, true);
+  return va;
+}
+
+// #define debug_freeuserstack printf
+#define debug_freeuserstack (void)
+uint64 find_free_userstack_page(int *idx) {
+  int i = 0;
+
+  acquire(&userstack_bitmap_lock);
+
+  if (bitmap_nr_free == 0) {
+    // Find the first unmapped entry in the bitmap
+    debug_freeuserstack(
+        "find_free_userstack_page: no free entries, allocating new page\n");
+    for (i = 0; i < USERSTACK_BITMAP_SIZE; i++) {
+      if (userstack_bitmap_get(userstack_bitmap, i) == BMP_UNMAPPED) {
+        break;
+      }
+    }
+    if (i == USERSTACK_BITMAP_SIZE) {
+      // No free entries found
+      release(&userstack_bitmap_lock);
+      *idx = -1; // Indicate no free entry found
+      return 0;
+    }
+    // Mark the entry as used
+    userstack_bitmap_set(userstack_bitmap, i, BMP_USED);
+
+    release(&userstack_bitmap_lock);
+    debug_freeuserstack(
+        "find_free_userstack_page: allocating new page at idx %d\n", i);
+    *idx = i;
+    return alloc_userstack_page(i);
+  } else {
+    // Find the first free entry in the bitmap
+    debug_freeuserstack(
+        "find_free_userstack_page: found free entries, using existing page\n");
+    for (i = 0; i < USERSTACK_BITMAP_SIZE; i++) {
+      if (userstack_bitmap_get(userstack_bitmap, i) == BMP_FREE) {
+        break;
+      }
+    }
+    debug_freeuserstack("find_free_userstack_page: I am using free idx %d\n",
+                        i);
+    if (i == USERSTACK_BITMAP_SIZE) {
+      // No free entries found
+      release(&userstack_bitmap_lock);
+      *idx = -1; // Indicate no free entry found
+      return 0;
+    }
+    // Mark the entry as used
+    userstack_bitmap_set(userstack_bitmap, i, BMP_USED);
+    bitmap_nr_free--;
+
+    release(&userstack_bitmap_lock);
+    uint64 addr = KSTACK(i);
+    debug_freeuserstack(
+        "find_free_userstack_page: returning existing page at addr %p\n",
+        (void *)addr);
+    *idx = i;
+    return addr;
+  }
+}
+
+// Free a process's kernel stack page.
+// p->lock must be held.
+void free_userstack_page(struct proc *p) {
+  if (p->kstack) {
+    uint64 idx = p->pid;
+    debug_freeuserstack(
+        "free_proc_page: freeing user stack page for pid %d, idx %d\n", p->pid,
+        idx);
+    if (idx < USERSTACK_BITMAP_SIZE) {
+      // Mark the entry as free
+      acquire(&userstack_bitmap_lock);
+      // Check if freeing this page would push the bitmap above the trim limit
+      if (bitmap_nr_free >= TRIM_LIMIT) {
+        debug_freeuserstack(
+            "free_proc_page: bitmap_nr_free = %d, trimming user stack pages\n",
+            bitmap_nr_free);
+        // If so, find the last TRIM_LIMIT_DROP_TO entries in the map and free
+        // them
+        int free_count = 0;
+        int last_entries_idx[TRIM_LIMIT - TRIM_LIMIT_DROP_TO + 1];
+        for (int i = USERSTACK_BITMAP_SIZE - 1; i >= 0; i--) {
+          if (userstack_bitmap_get(userstack_bitmap, i) == BMP_FREE) {
+            last_entries_idx[free_count++] = i;
+            if (free_count >= TRIM_LIMIT - TRIM_LIMIT_DROP_TO + 1) {
+              break;
+            }
+          }
+        }
+        // deallocate the last TRIM_LIMIT_DROP_TO entries
+        for (int j = 0; j < free_count; j++) {
+          if (j == idx) {
+            continue;
+          }
+          int free_idx = last_entries_idx[j];
+          debug_freeuserstack(
+              "free_proc_page: deallocating user stack page at idx %d\n",
+              free_idx);
+          userstack_bitmap_set(userstack_bitmap, free_idx, BMP_UNMAPPED);
+          bitmap_nr_free--;
+          dealloc_userstack_page(free_idx);
+        }
+      }
+      userstack_bitmap_set(userstack_bitmap, idx, BMP_FREE);
+      bitmap_nr_free++;
+      debug_freeuserstack("free_proc_page: user stack page at idx %d is now "
+                          "free, bitmap_nr_free = %d\n",
+                          idx, bitmap_nr_free);
+      release(&userstack_bitmap_lock);
+    } else {
+      panic("free_proc_page: invalid index");
+    }
+    p->kstack = 0;
+  }
+}
+
 extern void forkret(void);
 static void freeproc(struct proc *p);
 
@@ -36,21 +223,10 @@ struct spinlock wait_lock;
 // Allocate a page for each process's kernel stack.
 // Map it high in memory, followed by an invalid
 // guard page.
-void proc_mapstacks(pagetable_t kpgtbl) {
-  struct proc *p = NULL;
-
-  for (p = proc; p < &proc[NPROC]; p++) {
-    char *pa = kalloc();
-    if (pa == 0) {
-      panic("kalloc");
-    }
-    uint64 va = KSTACK((int)(p - proc));
-    kvmmap(kpgtbl, va, (uint64)pa, PGSIZE, PTE_R | PTE_W);
-  }
-}
 
 // initialize the proc table.
 void procinit(void) {
+  bitmap_init(); // initialize the user stack bitmap
   struct proc *p = NULL;
 
   initlock(&pid_lock, "nextpid");
@@ -91,17 +267,6 @@ struct proc *myproc(void) {
   return p;
 }
 
-int allocpid(void) {
-  int pid = 0;
-
-  acquire(&pid_lock);
-  pid = nextpid;
-  nextpid = nextpid + 1;
-  release(&pid_lock);
-
-  return pid;
-}
-
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
@@ -120,7 +285,6 @@ static struct proc *allocproc(void) {
   return 0;
 
 found:
-  p->pid = allocpid();
   p->state = USED;
 
   // Allocate a trapframe page.
@@ -142,6 +306,9 @@ found:
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
+  int idx = 0;
+  p->kstack = find_free_userstack_page(&idx);
+  p->pid = idx;
   p->context.sp = p->kstack + PGSIZE;
 
   return p;
@@ -151,6 +318,7 @@ found:
 // including user pages.
 // p->lock must be held.
 static void freeproc(struct proc *p) {
+  free_userstack_page(p); // free the user stack page
   if (p->trapframe) {
     kfree((void *)p->trapframe);
   }
