@@ -4,6 +4,7 @@
 #include "printf.h"
 #include "riscv.h"
 #include "types.h"
+#include "string.h"
 
 void _entry();
 
@@ -92,7 +93,7 @@ void sbiinit(void) {
     if (sbi_hart_start(i, (uint64)_entry, 0) < 0) {
       //
     } else {
-      //printf("SBI HSM hart %d started\n", i);
+      // printf("SBI HSM hart %d started\n", i);
     }
   }
   pop_off();
@@ -112,4 +113,13 @@ void timer_set(void) {
   uint64 next = r_time() + 100000; // 10ms = 250000 ticks
   sbi_set_timer(next);
   w_sie(old | SIE_STIE | SIE_SSIE | SIE_SEIE); // enable timer interrupts
+}
+
+void sbi_debug_console_write(char *str) {
+  uint64 num_bytes = strlen(str);
+  uint64 ptr = (uint64)str;
+  uint32 lower = ptr & 0xffffffff;
+  uint32 upper = ((ptr) >> 16) >> 16;
+  sbi_ecall(SBI_EXT_ID_DBCN, SBI_DBCN_SEND_DB, num_bytes, lower, upper, 0, 0,
+            0);
 }

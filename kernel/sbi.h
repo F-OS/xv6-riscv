@@ -18,6 +18,9 @@
 #define SBI_EXT_ID_IPI 0x735049
 #define SBI_IPI_SEND_IPI 0
 
+#define SBI_EXT_ID_DBCN 0x4442434E
+#define SBI_DBCN_SEND_DB 0
+
 /* RFENCE (RFNC) Extension */
 #define SBI_EXT_ID_RFNC 0x52464E43
 #define SBI_RFNC_REMOTE_FENCE_I 0
@@ -71,5 +74,6 @@ struct sbiret {
 void sbiinit();
 void sbi_set_timer(unsigned long stime_value);
 void timer_set();
+void sbi_debug_console_write(char *str);
 
 #endif
