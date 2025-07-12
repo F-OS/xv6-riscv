@@ -20,7 +20,6 @@ struct proc proc[NPROC];
 struct proc *initproc;
 
 int nextpid = 1;
-struct spinlock pid_lock;
 
 enum bitmap_states {
   BMP_UNMAPPED,
@@ -229,7 +228,6 @@ void procinit(void) {
   bitmap_init(); // initialize the user stack bitmap
   struct proc *p = NULL;
 
-  initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
   for (p = proc; p < &proc[NPROC]; p++) {
     initlock(&p->lock, "proc");

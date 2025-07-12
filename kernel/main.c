@@ -22,9 +22,8 @@ void kmain(int hartid, uint64 fdt) {
   if (main_hartid == ~0UL) {
     memset(_bss_start, 0, _bss_end - _bss_start);
     main_hartid = hartid;
-    consoleinit();
-    printfinit();
     sbiinit();
+    consoleinit();
     putstr("\n");
     putstr("xv6 kernel is booting\n");
     putstr("\n");
@@ -46,7 +45,7 @@ void kmain(int hartid, uint64 fdt) {
     __sync_synchronize();
     allowed_n += 1;
   } else {
-    while(main_hartid == ~0UL) {
+    while (main_hartid == ~0UL) {
       __sync_synchronize(); // wait for main hartid to be set
     }
     int whoami = (hartid - main_hartid) % NCPU;

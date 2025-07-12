@@ -135,3 +135,48 @@ char *strcat(char *s, const char *t) {
   }
   return os;
 }
+
+void *memchr(const void *ptr, int ch, long unsigned count) {
+  const unsigned char *p = (const unsigned char *)ptr;
+  const unsigned char *end = p + count;
+
+  while (p < end) {
+    if (*p == (unsigned char)ch) {
+      return (void *)p;
+    }
+    p++;
+  }
+  return NULL;
+}
+
+char *strchr(const char *s, int c) {
+  while (*s) {
+    if (*s == (char)c) {
+      return (char *)s;
+    }
+    s++;
+  }
+  return NULL;
+}
+
+char *strrchr(const char *s, int c) {
+  const char *last = NULL;
+
+  while (*s) {
+    if (*s == (char)c) {
+      last = s;
+    }
+    s++;
+  }
+  return (char *)last;
+}
+
+long unsigned strnlen(const char *s, long unsigned maxlen) {
+  int n = 0;
+
+  while (*s && n < maxlen) {
+    s++;
+    n++;
+  }
+  return n;
+}
