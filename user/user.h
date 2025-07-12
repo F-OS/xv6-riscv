@@ -22,6 +22,16 @@ int getpid(void);
 char *sbrk(int);
 int sleep(int);
 int uptime(void);
+struct memstat {
+    unsigned long total_pages;  // Total number of pages in the system
+    unsigned long free_pages;   // Number of free pages
+    unsigned long used_pages;   // Number of used pages
+    unsigned long total_memory; // Total memory in bytes
+    unsigned long free_memory;  // Free memory in bytes
+    unsigned long used_memory;  // Used memory in bytes
+    unsigned long page_size;    // Size of each page in bytes
+  };
+int memstat(struct memstat *ms);
 
 // ulib.c
 int stat(const char *, struct stat *);
@@ -41,3 +51,4 @@ void *memcpy(void *, const void *, uint);
 // umalloc.c
 void *malloc(uint);
 void free(void *);
+

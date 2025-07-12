@@ -13,6 +13,8 @@
 void freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
+unsigned long pages = 0;
+unsigned long free_pages = 0;
 // defined by kernel.ld.
 
 struct run {
@@ -27,6 +29,9 @@ struct {
 void kinit(void) {
   initlock(&kmem.lock, "kmem");
   freerange(end, (void *)PHYSTOP);
+  free_pages = pages;
+  printf("kinit: %lu pages free (%lu bytes, %lu MB)\n", pages, pages * PGSIZE,
+         pages * PGSIZE / (1024 * 1024));
 }
 
 void freerange(void *pa_start, void *pa_end) {
@@ -34,6 +39,7 @@ void freerange(void *pa_start, void *pa_end) {
   p = (char *)PGROUNDUP((uint64)pa_start);
   for (; p + PGSIZE <= (char *)pa_end; p += PGSIZE) {
     kfree(p);
+    pages++;
   }
 }
 
@@ -57,6 +63,7 @@ void kfree(void *pa) {
   acquire(&kmem.lock);
   r->next = kmem.freelist;
   kmem.freelist = r;
+  free_pages++;
   release(&kmem.lock);
 }
 
@@ -71,10 +78,31 @@ void *kalloc(void) {
   if (r) {
     kmem.freelist = r->next;
   }
+  free_pages--;
   release(&kmem.lock);
 
   if (r) {
     memset((char *)r, 5, PGSIZE); // fill with junk
   }
   return (void *)r;
+}
+
+unsigned long get_free_pages(void) {
+  unsigned long free = 0;
+
+  acquire(&kmem.lock);
+  free = free_pages;
+  release(&kmem.lock);
+
+  return free;
+}
+
+unsigned long get_total_pages(void) {
+  unsigned long total = 0;
+
+  acquire(&kmem.lock);
+  total = pages;
+  release(&kmem.lock);
+
+  return total;
 }

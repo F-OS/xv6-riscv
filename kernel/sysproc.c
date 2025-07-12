@@ -1,3 +1,4 @@
+#include "kernel/kalloc.h"
 #include "proc.h"
 #include "spinlock.h"
 #include "syscall.h"
@@ -70,4 +71,34 @@ uint64 sys_uptime(void) {
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64 sys_memstat(void) {
+  uint64 p = 0;
+
+  argaddr(0, &p);
+
+  struct {
+    unsigned long total_pages;  // Total number of pages in the system
+    unsigned long free_pages;   // Number of free pages
+    unsigned long used_pages;   // Number of used pages
+    unsigned long total_memory; // Total memory in bytes
+    unsigned long free_memory;  // Free memory in bytes
+    unsigned long used_memory;  // Used memory in bytes
+    unsigned long page_size;    // Size of each page in bytes
+  } memstat;
+  uint64 total_pages = get_total_pages();
+  uint64 free_pages = get_free_pages();
+  uint64 used_pages = total_pages - free_pages;
+  memstat.total_pages = total_pages;
+  memstat.free_pages = free_pages;
+  memstat.used_pages = used_pages;
+  memstat.total_memory = total_pages * PGSIZE;
+  memstat.free_memory = free_pages * PGSIZE;
+  memstat.used_memory = used_pages * PGSIZE;
+  memstat.page_size = PGSIZE;
+  if (either_copyout(1, p, &memstat, sizeof(memstat)) < 0) {
+    return -1;
+  }
+  return 0;
 }
