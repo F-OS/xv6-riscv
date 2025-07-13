@@ -22,6 +22,7 @@ int getpid(void);
 char *sbrk(int);
 int sleep(int);
 int uptime(void);
+int yield();
 struct memstat {
     unsigned long total_pages;  // Total number of pages in the system
     unsigned long free_pages;   // Number of free pages

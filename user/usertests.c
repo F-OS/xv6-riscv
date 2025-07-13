@@ -755,7 +755,7 @@ void killstatus(char *s) {
     }
     if (pid1 == 0) {
       while (1) {
-        getpid();
+        yield();
       }
       exit(0);
     }
@@ -2066,7 +2066,7 @@ void sbrkfail(char *s) {
       write(fds[1], "x", 1);
       // sit around until killed
       for (;;)
-        sleep(1000);
+        yield();
     }
     if (pids[i] != -1)
       read(fds[0], &scratch, 1);

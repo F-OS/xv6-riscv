@@ -79,7 +79,11 @@ void lookup_interrupt(uint64 scause, uint64 sstatus, uint64 sepc,
       // an interrupt will change sepc, scause, and sstatus,
       // so enable only now that we're done with those registers.
       intr_on();
-      syscall();
+      if (p->trapframe->a7 == SYS_yield) {
+        *do_yield = true;
+      } else {
+        syscall();
+      }
     } else if (scause == 0x8000000000000009ULL) {
       // PLIC
       int irq = plic_claim();
