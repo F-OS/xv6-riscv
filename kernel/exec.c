@@ -106,6 +106,7 @@ int exec(char *path, char **argv) {
   }
   sz = sz1;
   uvmclear(pagetable, sz - ((USERSTACK + 1) * PGSIZE));
+  uvmclear(pagetable, 0); // guard page at 0
   sp = sz;
   stackbase = sp - USERSTACK * PGSIZE;
 
