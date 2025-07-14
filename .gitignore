@@ -21,3 +21,9 @@ compile_commands.json
 *.vcxproj*
 .vs/
 kernel/x64
+kernel/kernel_nosymb
+tools/sym2bin
+kernel/kernelsym.bin
+dump
+a.out
+qemu.dtc
