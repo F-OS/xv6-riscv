@@ -3,6 +3,8 @@
 // and pipe buffers. Allocates whole 4096-byte pages.
 
 #include "kalloc.h"
+#include "kernel/fdt.h"
+#include "kernel/intr.h"
 #include "memlayout.h"
 #include "printf.h"
 #include "riscv.h"
@@ -13,8 +15,9 @@
 void freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
-unsigned long pages = 0;
-unsigned long free_pages = 0;
+
+uint64 pages = 0;
+uint64 free_pages = 0;
 // defined by kernel.ld.
 
 struct run {
@@ -27,11 +30,17 @@ struct {
 } kmem;
 
 void kinit(void) {
+  uint64 phystop = (PHYSTART + mem_size);
   initlock(&kmem.lock, "kmem");
-  freerange(end, (void *)PHYSTOP);
+  freerange(end, (void *)phystop);
   free_pages = pages;
   printf("kinit: %lu pages free (%lu bytes, %lu MB)\n", pages, pages * PGSIZE,
-         pages * PGSIZE / (1024 * 1024));
+         (pages * PGSIZE) / (1024 * 1024));
+  // Probe the beginning and end of each page to ensure they are accessible.
+  char *p = NULL;
+  for (p = end; p < (char *)phystop; p += PGSIZE) {
+    *p = 0;                // write to the first byte of each page
+  }
 }
 
 void freerange(void *pa_start, void *pa_end) {
@@ -49,9 +58,9 @@ void freerange(void *pa_start, void *pa_end) {
 // initializing the allocator; see kinit above.)
 void kfree(void *pa) {
   struct run *r = NULL;
-
+  uint64 phystop = PHYSTART + mem_size;
   if (pa == NULL || ((uint64)pa % PGSIZE) != 0 || (char *)pa < end ||
-      (uint64)pa >= PHYSTOP) {
+      (uint64)pa >= phystop) {
     panic("kfree");
   }
 
@@ -78,7 +87,9 @@ void *kalloc(void) {
   if (r) {
     kmem.freelist = r->next;
   }
-  free_pages--;
+  if (free_pages > 0) {
+    free_pages--;
+  }
   release(&kmem.lock);
 
   if (r) {
@@ -94,7 +105,7 @@ unsigned long get_free_pages(void) {
   free = free_pages;
   release(&kmem.lock);
 
-  return free;
+  return free > 0 ? free : 0;
 }
 
 unsigned long get_total_pages(void) {

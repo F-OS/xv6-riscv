@@ -2,6 +2,7 @@
 #include "file.h"
 #include "fs.h"
 #include "kalloc.h"
+#include "kernel/sysinfo.h"
 #include "log.h"
 #include "memlayout.h"
 #include "param.h"
@@ -300,6 +301,15 @@ found:
     return 0;
   }
 
+  // Shared memory page.
+  p->kshare = kalloc();
+  if (p->kshare == 0) {
+    proc_freepagetable(p->pagetable, p->sz);
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -325,6 +335,10 @@ static void freeproc(struct proc *p) {
     proc_freepagetable(p->pagetable, p->sz);
   }
   p->pagetable = 0;
+  if (p->kshare) {
+    kfree((void *)p->kshare);
+  }
+  p->kshare = 0;
   p->sz = 0;
   p->pid = 0;
   p->parent = 0;
@@ -365,6 +379,16 @@ pagetable_t proc_pagetable(struct proc *p) {
     return 0;
   }
 
+  // map the shared memory page just below the trapframe page,
+  // for shared memory between kernel and user.
+  if (mappages(pagetable, KSHARE, PGSIZE, (uint64)p->kshare,
+               PTE_R | PTE_W | PTE_U) < 0) {
+    uvmunmap(pagetable, TRAPFRAME, 1, 0);
+    uvmunmap(pagetable, TRAMPOLINE, 1, 0);
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+
   return pagetable;
 }
 
@@ -373,6 +397,7 @@ pagetable_t proc_pagetable(struct proc *p) {
 void proc_freepagetable(pagetable_t pagetable, uint64 sz) {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  uvmunmap(pagetable, KSHARE, 1, 0);
   uvmfree(pagetable, sz);
 }
 
@@ -586,6 +611,32 @@ int wait(uint64 addr) {
   }
 }
 
+int get_nproc(void) {
+  int count = 0;
+  struct proc *p = NULL;
+
+  for (p = proc; p < &proc[NPROC]; p++) {
+    if (p->state != UNUSED) {
+      count++;
+    }
+  }
+  return count;
+}
+
+void update_kshare(struct proc *p) {
+  int free_pages = get_free_pages() * PGSIZE;
+
+  int nproc = get_nproc();
+
+  if (p->kshare) {
+    p->kshare->pid = p->pid;
+    p->kshare->nproc = nproc;
+    p->kshare->freemem = free_pages;
+    p->kshare->my_ticks = p->myticks;
+    p->kshare->ticks = ticks;
+  }
+}
+
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -613,7 +664,9 @@ void scheduler(void) {
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
+        int begin_ticks = ticks;
         swtch(&c->context, &p->context);
+        p->myticks += ticks - begin_ticks; // update process ticks
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.

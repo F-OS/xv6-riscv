@@ -41,8 +41,11 @@
 // the kernel expects there to be RAM
 // for use by the kernel and user pages
 // from physical address 0x80000000 to PHYSTOP.
-#define KERNBASE 0x80200000ULL
-#define PHYSTOP (KERNBASE + 505 * 1024 * 1024)
+// OpenSBI from 0x80000000 to 0x80200000,
+// then the kernel from 0x80200000 to PHYSTOP.
+#define PHYSTART 0x80000000ULL
+#define KERNBASE 0x80010000ULL
+#define PHYSTOP (KERNBASE + 509 * 1024 * 1024)
 
 // map the trampoline page to the highest address,
 // in both user and kernel space.
@@ -59,8 +62,10 @@
 //   fixed-size stack
 //   expandable heap
 //   ...
+//   KSHARE (shared memory for kernel and user)
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+#define KSHARE (TRAPFRAME - PGSIZE)
 
 #endif // KERNEL_MEMLAYOUT_H

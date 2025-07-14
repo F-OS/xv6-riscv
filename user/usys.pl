@@ -38,3 +38,4 @@ entry("sleep");
 entry("uptime");
 entry("memstat");
 entry("yield");
+entry("sysinfo");

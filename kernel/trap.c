@@ -55,6 +55,9 @@ void usertrap(void) {
 void usertrapret(void) {
   struct proc *p = myproc();
 
+  // Update kshare on any kernel-user transition.
+  update_kshare(p);
+
   // we're about to switch the destination of traps from
   // kerneltrap() to usertrap(), so turn off interrupts until
   // we're back in user space, where usertrap() is correct.

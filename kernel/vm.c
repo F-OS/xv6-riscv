@@ -1,5 +1,6 @@
 #include "vm.h"
 #include "kalloc.h"
+#include "kernel/fdt.h"
 #include "memlayout.h"
 #include "printf.h"
 #include "proc.h"
@@ -11,6 +12,7 @@
  * the kernel's page table.
  */
 pagetable_t kernel_pagetable;
+extern char end[]; // first address after kernel.
 
 extern char etext[]; // kernel.ld sets this to end of kernel code.
 
@@ -36,7 +38,8 @@ pagetable_t kvmmake(void) {
   kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64)etext - KERNBASE, PTE_R | PTE_X);
 
   // map kernel data and the physical RAM we'll make use of.
-  kvmmap(kpgtbl, (uint64)etext, (uint64)etext, PHYSTOP - (uint64)etext,
+  uint64 phystop = PHYSTART + mem_size;
+  kvmmap(kpgtbl, (uint64)etext, (uint64)etext, phystop - (uint64)etext,
          PTE_R | PTE_W);
 
   // map the trampoline for trap entry/exit to

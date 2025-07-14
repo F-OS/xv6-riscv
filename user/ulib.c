@@ -1,5 +1,6 @@
 #include "kernel/fcntl.h"
 #include "kernel/stat.h"
+#include "kernel/sysinfo.h"
 #include "kernel/types.h"
 #include "user/user.h"
 #pragma GCC diagnostic push
@@ -8,6 +9,7 @@
 //
 // wrapper so that it's OK if main() does not call exit().
 //
+volatile struct sysinfo *kshare = (struct sysinfo *)KSHARE;
 void start(void) {
   extern int main(void);
   main();

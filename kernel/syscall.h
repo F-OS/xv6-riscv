@@ -25,6 +25,7 @@
 #define SYS_close 21
 #define SYS_memstat 22
 #define SYS_yield 23
+#define SYS_sysinfo 24
 
 #ifndef __ASSEMBLER__
 #include "types.h"

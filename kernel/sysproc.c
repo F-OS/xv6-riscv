@@ -1,4 +1,5 @@
 #include "kernel/kalloc.h"
+#include "kernel/sysinfo.h"
 #include "proc.h"
 #include "spinlock.h"
 #include "syscall.h"
@@ -99,6 +100,24 @@ uint64 sys_memstat(void) {
   memstat.page_size = PGSIZE;
   if (either_copyout(1, p, &memstat, sizeof(memstat)) < 0) {
     return -1;
+  }
+  return 0;
+}
+
+// Already have shared memory updated in scheduler, just force an update and
+// copy it to the user's given address.
+uint64 sys_sysinfo(void) {
+  uint64 p = 0;
+  struct sysinfo info;
+
+  argaddr(0, &p);
+  struct proc *curproc = myproc();
+  if (p == 0) {
+    return -1; // invalid address
+  }
+
+  if (either_copyout(1, p, curproc->kshare, sizeof(struct sysinfo)) < 0) {
+    return -1; // failed to copy out
   }
   return 0;
 }

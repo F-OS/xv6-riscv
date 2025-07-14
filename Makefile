@@ -31,6 +31,7 @@ OBJS = \
   $K/virtio_disk.o \
   $K/intr.o \
   $K/sbi.o \
+  $K/fdt.o
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -149,7 +150,8 @@ UPROGS=\
 	$U/_zombie\
 	$U/_sleep\
 	$U/_pingpong \
-	$U/_free
+	$U/_free \
+	$U/_sysinfotest \
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -176,7 +178,7 @@ CPUS := 8
 endif
 
 QEMUOPTS = -machine virt -bios default -kernel $K/kernel -m 512M -smp $(CPUS) -nographic
-QEMUOPTS += -global virtio-mmio.force-legacy=false
+QEMUOPTS += -global virtio-mmio.force-legacy=false 
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
