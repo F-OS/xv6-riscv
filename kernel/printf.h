@@ -1,7 +1,7 @@
 #ifndef PRINTF_H
 #define PRINTF_H
 int printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void panic(const char *why) __attribute__((noreturn));
+void panic(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void putstr(const char *s);
 #define STRINGIZE(x) STRINGIZE2(x)
 #define STRINGIZE2(x) #x

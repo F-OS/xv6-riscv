@@ -1,6 +1,8 @@
 K=kernel
 U=user
 
+T = tools
+
 OBJS = \
   $K/entry.o \
   $K/start.o \
@@ -31,7 +33,7 @@ OBJS = \
   $K/virtio_disk.o \
   $K/intr.o \
   $K/sbi.o \
-  $K/fdt.o
+  $K/fdt.o 
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -67,8 +69,7 @@ CFLAGS += -Og -g -std=gnu2x -fopt-info-missed=dump
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 
-# CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
-CFLAGS += -fno-common -nostdlib
+ CFLAGS += -ffreestanding -mno-relax -fno-common -nostdlib -fno-omit-frame-pointer
 CFLAGS += -fno-builtin-strncpy -fno-builtin-strncmp -fno-builtin-strlen -fno-builtin-memset
 CFLAGS += -fno-builtin-memmove -fno-builtin-memcmp -fno-builtin-log -fno-builtin-bzero
 CFLAGS += -fno-builtin-strchr -fno-builtin-exit -fno-builtin-malloc -fno-builtin-putc
@@ -88,17 +89,29 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
-$K/kernel: $(OBJS) $K/kernel.ld $U/initcode
-	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
-	$(OBJDUMP) --no-addresses --no-show-raw-insn -S $K/kernel > $K/kernel.noaddr.asm
-	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
-	$(OBJDUMP) --no-addresses -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
+$K/kernel: $(OBJS) $K/kernel.ld $U/initcode $T/sym2bin $K/kernel_nosymb $K/kernelsym.o
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $K/kernelsym.o $(OBJS) 
+
+$K/kernel_nosymb: $(OBJS) $K/kernel.ld $U/initcode $T/sym2bin $K/kernelsym_dummy.o
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel_nosymb $K/kernelsym_dummy.o $(OBJS) 
+	$(OBJDUMP) --no-addresses --no-show-raw-insn -S $K/kernel_nosymb > $K/kernel.noaddr.asm
+	$(OBJDUMP) -S $K/kernel_nosymb > $K/kernel.asm
+	$(OBJDUMP) --no-addresses -t $K/kernel_nosymb | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
 $U/initcode: $U/initcode.S
 	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c $U/initcode.S -o $U/initcode.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o $U/initcode.out $U/initcode.o
 	$(OBJCOPY) -S -O binary $U/initcode.out $U/initcode
 	$(OBJDUMP) -S $U/initcode.o > $U/initcode.asm
+
+$K/kernelsym_dummy.o: $K/kernelsym.S $T/sym2bin
+	$T/sym2bin -d $K/kernelsym.bin
+	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c -o $K/kernelsym_dummy.o $K/kernelsym.S
+
+$K/kernelsym.o: $K/kernelsym.S $K/kernel_nosymb
+	$T/sym2bin $K/kernel.sym $K/kernelsym.bin
+	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c -o $K/kernelsym.o $K/kernelsym.S
+
 
 tags: $(OBJS) _init
 	etags *.S *.c
@@ -161,6 +174,8 @@ fs.img: mkfs/mkfs README $(UPROGS)
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
+	$K/kernel $K/kernel_nosymb $K/kernelsym.bin \
+	$T/sym2bin \
 	rm -f $K/libfdt/*.o $K/libfdt/*.d $K/libfdt.a \
 	$U/initcode $U/initcode.out $K/kernel fs.img \
 	mkfs/mkfs .gdbinit \
@@ -176,6 +191,13 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 8
 endif
+
+PCC = gcc
+
+$T/sym2bin: $T/sym2bin.c
+	$(PCC) -Wall -Wextra -Wpedantic -O2 -o $T/sym2bin $T/sym2bin.c
+$K/kernelsym.bin: $T/sym2bin $K/kernel.sym
+	$T/sym2bin $K/kernel.sym $K/kernelsym.bin
 
 QEMUOPTS = -machine virt -bios default -kernel $K/kernel -m 512M -smp $(CPUS) -nographic
 QEMUOPTS += -global virtio-mmio.force-legacy=false 
