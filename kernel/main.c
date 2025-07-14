@@ -3,6 +3,7 @@
 #include "file.h"
 #include "fs.h"
 #include "kalloc.h"
+#include "kernel/fdt.h"
 #include "kernel/sbi.h"
 #include "plic.h"
 #include "printf.h"
@@ -24,6 +25,7 @@ void kmain(int hartid, uint64 fdt) {
     main_hartid = hartid;
     sbiinit();
     consoleinit();
+    probe_fdt(fdt);
     putstr("\n");
     putstr("xv6 kernel is booting\n");
     putstr("\n");
