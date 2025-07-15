@@ -3,9 +3,6 @@
 #include "kernel/sysinfo.h"
 #include "kernel/types.h"
 #include "user/user.h"
-#pragma GCC diagnostic push
-#pragma GCC optimize("no-tree-loop-distribute-patterns")
-
 //
 // wrapper so that it's OK if main() does not call exit().
 //
@@ -15,6 +12,8 @@ void start(void) {
   main();
   exit(0);
 }
+#pragma GCC push_options
+#pragma GCC optimize("no-tree-loop-distribute-patterns")
 
 char *strcpy(char *s, const char *t) {
   char *os = s;
@@ -78,11 +77,11 @@ int memcmp(const void *s1, const void *s2, uint n) {
   }
   return 0;
 }
-
-void *memcpy(void *dst, const void *src, uint n) {
+#pragma GCC pop_options
+BUILTIN void *memcpy(void *dst, const void *src, uint n) {
   return memmove(dst, src, n);
 }
-#pragma GCC diagnostic pop
+DEF_BUILTIN(memcpy);
 
 char *gets(char *buf, int max) {
   int i;

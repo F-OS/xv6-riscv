@@ -1,8 +1,6 @@
 #include "types.h"
-#ifdef __GNUC__
-// Don't let GCC pattern-match these functions' bodies into self-calls
+#pragma GCC push_options
 #pragma GCC optimize("no-tree-loop-distribute-patterns")
-#endif
 
 void *memset(void *dst, int c, uint n) {
   char *cdst = (char *)dst;
@@ -180,3 +178,5 @@ long unsigned strnlen(const char *s, long unsigned maxlen) {
   }
   return n;
 }
+
+#pragma GCC pop_options

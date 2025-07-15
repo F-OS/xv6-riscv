@@ -62,14 +62,13 @@ AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
-
 CFLAGS = -Wall -Wextra -Wstrict-aliasing=3 -Wwrite-strings -Wvla -Wstringop-overflow=4 -Wno-logical-op-parentheses -Wshadow -fanalyzer -O -fno-omit-frame-pointer -ggdb -gdwarf-2
 CFLAGS += -Wcast-align=strict -fanalyzer
-CFLAGS += -Og -g -std=gnu2x -fopt-info-missed=dump
+CFLAGS += -Og -g -std=gnu2x -fopt-info-all=dump
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
 
- CFLAGS += -ffreestanding -mno-relax -fno-common -nostdlib -fno-omit-frame-pointer
+#CFLAGS += -ffreestanding -mno-relax -fno-common -nostdlib 
 CFLAGS += -fno-builtin-strncpy -fno-builtin-strncmp -fno-builtin-strlen -fno-builtin-memset
 CFLAGS += -fno-builtin-memmove -fno-builtin-memcmp -fno-builtin-log -fno-builtin-bzero
 CFLAGS += -fno-builtin-strchr -fno-builtin-exit -fno-builtin-malloc -fno-builtin-putc
@@ -165,6 +164,7 @@ UPROGS=\
 	$U/_pingpong \
 	$U/_free \
 	$U/_sysinfotest \
+	$U/_panic \
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
@@ -172,6 +172,7 @@ fs.img: mkfs/mkfs README $(UPROGS)
 -include kernel/*.d user/*.d
 
 clean: 
+	rm dump
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
 	$K/kernel $K/kernel_nosymb $K/kernelsym.bin \
