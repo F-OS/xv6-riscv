@@ -12,12 +12,7 @@
 #include <stdarg.h>
 
 #include "file.h"
-#include "fs.h"
-#include "memlayout.h"
-#include "param.h"
 #include "proc.h"
-#include "riscv.h"
-#include "sleeplock.h"
 #include "spinlock.h"
 #include "types.h"
 #include "uart.h"
@@ -56,12 +51,13 @@ struct {
 // user write()s to the console go here.
 //
 int consolewrite(int user_src, uint64 src, int n) {
-  int i;
+  int i = 0;
 
   for (i = 0; i < n; i++) {
-    char c;
-    if (either_copyin(&c, user_src, src + i, 1) == -1)
+    char c = 0;
+    if (either_copyin(&c, user_src, src + i, 1) == -1) {
       break;
+    }
     uartputc(c);
   }
 
@@ -75,9 +71,9 @@ int consolewrite(int user_src, uint64 src, int n) {
 // or kernel address.
 //
 int consoleread(int user_dst, uint64 dst, int n) {
-  uint target;
-  int c;
-  char cbuf;
+  uint target = 0;
+  int c = 0;
+  char cbuf = 0;
 
   target = n;
   acquire(&cons.lock);
@@ -105,8 +101,9 @@ int consoleread(int user_dst, uint64 dst, int n) {
 
     // copy the input byte to the user-space buffer.
     cbuf = c;
-    if (either_copyout(user_dst, dst, &cbuf, 1) == -1)
+    if (either_copyout(user_dst, dst, &cbuf, 1) == -1) {
       break;
+    }
 
     dst++;
     --n;

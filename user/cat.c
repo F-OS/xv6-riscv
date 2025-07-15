@@ -1,11 +1,10 @@
 #include "kernel/fcntl.h"
-#include "kernel/types.h"
 #include "user/user.h"
 
 char buf[512];
 
 void cat(int fd) {
-  int n;
+  int n = 0;
 
   while ((n = read(fd, buf, sizeof(buf))) > 0) {
     if (write(1, buf, n) != n) {
@@ -20,7 +19,8 @@ void cat(int fd) {
 }
 
 int main(int argc, char *argv[]) {
-  int fd, i;
+  int fd = 0;
+  int i = 0;
 
   if (argc <= 1) {
     cat(0);

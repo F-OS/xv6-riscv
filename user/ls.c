@@ -1,29 +1,31 @@
 #include "kernel/fcntl.h"
 #include "kernel/fs.h"
 #include "kernel/stat.h"
-#include "kernel/types.h"
 #include "user/user.h"
 
 char *fmtname(char *path) {
   static char buf[DIRSIZ + 1];
-  char *p;
+  char *p = NULL;
 
   // Find first character after last slash.
-  for (p = path + strlen(path); p >= path && *p != '/'; p--)
+  for (p = path + strlen(path); p >= path && *p != '/'; p--) {
     ;
+  }
   p++;
 
   // Return blank-padded name.
-  if (strlen(p) >= DIRSIZ)
+  if (strlen(p) >= DIRSIZ) {
     return p;
+  }
   memmove(buf, p, strlen(p));
   memset(buf + strlen(p), ' ', DIRSIZ - strlen(p));
   return buf;
 }
 
 void ls(char *path) {
-  char buf[512], *p;
-  int fd;
+  char buf[512];
+  char *p = NULL;
+  int fd = 0;
   struct dirent de;
   struct stat st;
 
@@ -53,8 +55,9 @@ void ls(char *path) {
     p = buf + strlen(buf);
     *p++ = '/';
     while (read(fd, &de, sizeof(de)) == sizeof(de)) {
-      if (de.inum == 0)
+      if (de.inum == 0) {
         continue;
+      }
       memmove(p, de.name, DIRSIZ);
       p[DIRSIZ] = 0;
       if (stat(buf, &st) < 0) {
@@ -69,13 +72,14 @@ void ls(char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  int i;
+  int i = 0;
 
   if (argc < 2) {
     ls(".");
     exit(0);
   }
-  for (i = 1; i < argc; i++)
+  for (i = 1; i < argc; i++) {
     ls(argv[i]);
+  }
   exit(0);
 }

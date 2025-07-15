@@ -4,11 +4,7 @@
 
 #include "kernel/fcntl.h"
 #include "kernel/fs.h"
-#include "kernel/memlayout.h"
-#include "kernel/param.h"
-#include "kernel/riscv.h"
 #include "kernel/stat.h"
-#include "kernel/syscall.h"
 #include "kernel/types.h"
 #include "user/user.h"
 
@@ -22,15 +18,18 @@ int do_rand(unsigned long *ctx) {
    * Park and Miller, Communications of the ACM, vol. 31, no. 10,
    * October 1988, p. 1195.
    */
-  long hi, lo, x;
+  long hi = 0;
+  long lo = 0;
+  long x = 0;
 
   /* Transform to [1, 0x7ffffffe] range. */
   x = (*ctx % 0x7ffffffe) + 1;
   hi = x / 127773;
   lo = x % 127773;
   x = 16807 * lo - 2836 * hi;
-  if (x < 0)
+  if (x < 0) {
     x += 0x7fffffff;
+  }
   /* Transform to [0, 0x7ffffffd] range. */
   x--;
   *ctx = x;
@@ -56,8 +55,9 @@ void go(int which_child) {
 
   while (1) {
     iters++;
-    if ((iters % 500) == 0)
+    if ((iters % 500) == 0) {
       write(1, which_child ? "B" : "A", 1);
+    }
     int what = rand() % 23;
     if (what == 1) {
       close(open("grindir/../a", O_CREATE | O_RDWR));
@@ -119,8 +119,9 @@ void go(int which_child) {
     } else if (what == 15) {
       sbrk(6011);
     } else if (what == 16) {
-      if (sbrk(0) > break0)
+      if (sbrk(0) > break0) {
         sbrk(-(sbrk(0) - break0));
+      }
     } else if (what == 17) {
       int pid = fork();
       if (pid == 0) {
@@ -156,11 +157,13 @@ void go(int which_child) {
       if (pid == 0) {
         fork();
         fork();
-        if (write(fds[1], "x", 1) != 1)
+        if (write(fds[1], "x", 1) != 1) {
           printf("grind: pipe write failed\n");
-        char c;
-        if (read(fds[0], &c, 1) != 1)
+        }
+        char c = 0;
+        if (read(fds[0], &c, 1) != 1) {
           printf("grind: pipe read failed\n");
+        }
         exit(0);
       } else if (pid < 0) {
         printf("grind: fork failed\n");
@@ -214,7 +217,8 @@ void go(int which_child) {
       unlink("c");
     } else if (what == 22) {
       // echo hi | cat
-      int aa[2], bb[2];
+      int aa[2];
+      int bb[2];
       if (pipe(aa) < 0) {
         fprintf(2, "grind: pipe failed\n");
         exit(1);
@@ -274,7 +278,8 @@ void go(int which_child) {
       read(bb[0], buf + 1, 1);
       read(bb[0], buf + 2, 1);
       close(bb[0]);
-      int st1, st2;
+      int st1 = 0;
+      int st2 = 0;
       wait(&st1);
       wait(&st2);
       if (st1 != 0 || st2 != 0 || strcmp(buf, "hi\n") != 0) {

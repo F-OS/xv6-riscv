@@ -1,3 +1,7 @@
+#ifndef USER_H
+#define USER_H
+#define NULL ((void *)0)
+typedef unsigned int uint;
 struct stat;
 
 // system calls
@@ -41,3 +45,5 @@ void *memcpy(void *, const void *, uint);
 // umalloc.c
 void *malloc(uint);
 void free(void *);
+
+#endif

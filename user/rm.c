@@ -1,9 +1,7 @@
-#include "kernel/stat.h"
-#include "kernel/types.h"
 #include "user/user.h"
 
 int main(int argc, char *argv[]) {
-  int i;
+  int i = 0;
 
   if (argc < 2) {
     fprintf(2, "Usage: rm files...\n");

@@ -13,31 +13,34 @@ void start() {
 }
 
 char *strcpy(char *s, const char *t) {
-  char *os;
+  char *os = NULL;
 
   os = s;
-  while ((*s++ = *t++) != 0)
+  while ((*s++ = *t++) != 0) {
     ;
+  }
   return os;
 }
 
 int strcmp(const char *p, const char *q) {
-  while (*p && *p == *q)
+  while (*p && *p == *q) {
     p++, q++;
+  }
   return (uchar)*p - (uchar)*q;
 }
 
 uint strlen(const char *s) {
-  int n;
+  int n = 0;
 
-  for (n = 0; s[n]; n++)
+  for (n = 0; s[n]; n++) {
     ;
+  }
   return n;
 }
 
 void *memset(void *dst, int c, uint n) {
   char *cdst = (char *)dst;
-  int i;
+  int i = 0;
   for (i = 0; i < n; i++) {
     cdst[i] = c;
   }
@@ -45,69 +48,79 @@ void *memset(void *dst, int c, uint n) {
 }
 
 char *strchr(const char *s, char c) {
-  for (; *s; s++)
-    if (*s == c)
+  for (; *s; s++) {
+    if (*s == c) {
       return (char *)s;
+    }
+  }
   return 0;
 }
 
 char *gets(char *buf, int max) {
-  int i, cc;
-  char c;
+  int i = 0;
+  int cc = 0;
+  char c = 0;
 
   for (i = 0; i + 1 < max;) {
     cc = read(0, &c, 1);
-    if (cc < 1)
+    if (cc < 1) {
       break;
+    }
     buf[i++] = c;
-    if (c == '\n' || c == '\r')
+    if (c == '\n' || c == '\r') {
       break;
+    }
   }
   buf[i] = '\0';
   return buf;
 }
 
 int stat(const char *n, struct stat *st) {
-  int fd;
-  int r;
+  int fd = 0;
+  int r = 0;
 
   fd = open(n, O_RDONLY);
-  if (fd < 0)
+  if (fd < 0) {
     return -1;
+  }
   r = fstat(fd, st);
   close(fd);
   return r;
 }
 
 int atoi(const char *s) {
-  int n;
+  int n = 0;
 
   n = 0;
-  while ('0' <= *s && *s <= '9')
+  while ('0' <= *s && *s <= '9') {
     n = n * 10 + *s++ - '0';
+  }
   return n;
 }
 
 void *memmove(void *vdst, const void *vsrc, int n) {
-  char *dst;
-  const char *src;
+  char *dst = NULL;
+  const char *src = NULL;
 
   dst = vdst;
   src = vsrc;
   if (src > dst) {
-    while (n-- > 0)
+    while (n-- > 0) {
       *dst++ = *src++;
+    }
   } else {
     dst += n;
     src += n;
-    while (n-- > 0)
+    while (n-- > 0) {
       *--dst = *--src;
+    }
   }
   return vdst;
 }
 
 int memcmp(const void *s1, const void *s2, uint n) {
-  const char *p1 = s1, *p2 = s2;
+  const char *p1 = s1;
+  const char *p2 = s2;
   while (n-- > 0) {
     if (*p1 != *p2) {
       return *p1 - *p2;

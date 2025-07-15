@@ -1,24 +1,27 @@
 #include "kernel/fcntl.h"
-#include "kernel/stat.h"
-#include "kernel/types.h"
 #include "user/user.h"
 
 char buf[512];
 
 void wc(int fd, char *name) {
-  int i, n;
-  int l, w, c, inword;
+  int i = 0;
+  int n = 0;
+  int l = 0;
+  int w = 0;
+  int c = 0;
+  int inword = 0;
 
   l = w = c = 0;
   inword = 0;
   while ((n = read(fd, buf, sizeof(buf))) > 0) {
     for (i = 0; i < n; i++) {
       c++;
-      if (buf[i] == '\n')
+      if (buf[i] == '\n') {
         l++;
-      if (strchr(" \r\t\n\v", buf[i]))
+      }
+      if (strchr(" \r\t\n\v", buf[i])) {
         inword = 0;
-      else if (!inword) {
+      } else if (!inword) {
         w++;
         inword = 1;
       }
@@ -32,7 +35,8 @@ void wc(int fd, char *name) {
 }
 
 int main(int argc, char *argv[]) {
-  int fd, i;
+  int fd = 0;
+  int i = 0;
 
   if (argc <= 1) {
     wc(0, "");

@@ -14,4 +14,6 @@ typedef uint64 pde_t;
 
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 
+#define NULL ((void *)0)
+
 #endif // KERNEL_TYPES_H

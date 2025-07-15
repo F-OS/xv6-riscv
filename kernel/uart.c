@@ -83,8 +83,9 @@ void uartputc(int c) {
   acquire(&uart_tx_lock);
 
   if (panicked) {
-    for (;;)
+    for (;;) {
       ;
+    }
   }
   while (uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE) {
     // buffer is full.
@@ -105,13 +106,15 @@ void uartputc_sync(int c) {
   push_off();
 
   if (panicked) {
-    for (;;)
+    for (;;) {
       ;
+    }
   }
 
   // wait for Transmit Holding Empty to be set in LSR.
-  while ((ReadReg(LSR) & LSR_TX_IDLE) == 0)
+  while ((ReadReg(LSR) & LSR_TX_IDLE) == 0) {
     ;
+  }
   WriteReg(THR, c);
 
   pop_off();
@@ -164,8 +167,9 @@ void uartintr(void) {
   // read and process incoming characters.
   while (1) {
     int c = uartgetc();
-    if (c == -1)
+    if (c == -1) {
       break;
+    }
     consoleintr(c);
   }
 

@@ -2,17 +2,13 @@
 
 #include "kernel/fcntl.h"
 #include "kernel/file.h"
-#include "kernel/fs.h"
-#include "kernel/sleeplock.h"
-#include "kernel/spinlock.h"
-#include "kernel/stat.h"
-#include "kernel/types.h"
 #include "user/user.h"
 
 char *argv[] = {"sh", 0};
 
 int main(void) {
-  int pid, wpid;
+  int pid = 0;
+  int wpid = 0;
 
   if (open("console", O_RDWR) < 0) {
     mknod("console", CONSOLE, 0);

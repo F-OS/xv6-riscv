@@ -16,3 +16,14 @@ kernel/kernel
 user/usys.S
 .gdbinit
 .cache/
+compile_commands.json
+*.sln*
+*.vcxproj*
+.vs/
+kernel/x64
+kernel/kernel_nosymb
+tools/sym2bin
+kernel/kernelsym.bin
+dump
+a.out
+qemu.dtc
